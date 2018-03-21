@@ -17,11 +17,19 @@ from scipy.stats import kurtosis, skew
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #DATA FETCHING
 #get the path where all iages are being stored, similar to  johm's procedure in CPP
-pathname = "/home/kirsty/Desktop/GIT_FYP/fyp/classification"
+pathname = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png"
 filenames = glob.glob(pathname)
 
-print(filenames)
-print(glob.glob(pathname))
+#print(filenames)
+for i in range(0, len(filenames)):
+	currentImagePath = filenames[i]
+	#print(currentImagePath)
+	img = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+	plt.figure(i+1)
+	plt.imshow(img)
+
+plt.show()
+	
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #FEATURE EXTRACTION
 #obtain numeric values for the image, thus this function would contain all extractions
