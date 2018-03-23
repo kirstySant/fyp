@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import matplotlib.image as img
+#import matplotlib.image as img
 import skimage.feature as skimg
 import skimage.measure as skm 		#entropy function
 import numpy as np
@@ -13,21 +13,47 @@ from scipy.stats import kurtosis, skew
 ##=========NOTES=========##
 
 ##=======================##
+#global definitions
+in_neurons = 20
+l1_neurons = 12
+l2_neurons = 6
+out_neurons = 5
+samplesize = 100	#arbitrarily chosen
+learningRate = 0.1 	#arbitrarily chosen
 
+
+inputMatrixSize = (samplesize, in_neurons)
+inputMatrix = np.empty(inputMatrixSize)
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #DATA FETCHING
 #get the path where all iages are being stored, similar to  johm's procedure in CPP
-pathname = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png"
-filenames = glob.glob(pathname)
+pathname_grayscale = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png" # refine path name!!!
+filenames_grayscale = sorted(glob.glob(pathname_grayscale))
 
 #print(filenames)
-for i in range(0, len(filenames)):
-	currentImagePath = filenames[i]
-	#print(currentImagePath)
-	img = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-	plt.figure(i+1)
-	plt.imshow(img)
+for i in range(0, len(filenames_grayscale)):
+    currentImagePath = filenames_grayscale[i]
+    #print(currentImagePath)
+    #printing all images to check they are ok
+    image = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+    plt.figure(i+1)
+    plt.imshow(image, cmap='gray', interpolation='bicubic')
+    getGrayscaleFeatures(image, i)
+    print("image "+str(i))
+    print(inputMatrix[:i])
+#plt.show()
 
+pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png" #change path name!!!
+filenames_contour = sorted(glob.blog(pathname_contour))
+
+for j in range(0, len(filenames_contour)):
+    currentImagePath = filenames_contour[i]
+    image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+    plt.figure(i+len(filenames_grayscale))
+    plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
+    
+    print("image "+str(j))
+    print(inputMatrix[:j])
 plt.show()
 	
 #-----------------------------------------------------------------------------------------------------------------------------------------
@@ -37,117 +63,42 @@ plt.show()
 #or define global matrix for inputs and store directly there <- best option
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
+def getGrayscaleFeatures(im, sample):
+    
+    #intensity features
+    im_flat = np.copy(im).flatten()     #flatten to be able to compute skewness and kurtosis
+    inputMatrix(sample, 0) = im.mean() / im.size
+    inputMatrix(sample, 1) = np.var(im) / im.size
+    inputMatrix(sample, 2) = skew(im_flat)
+    inputMatrix(sample, 3) = kurtosis(im_flat)
+    
+    #texture features:
+    ##texture features - gray level cooccurrence matrix 
+    #these require calculations along 4 spatial orientations (0, 45, 90 and 135 degrees) 
+    #and then take the average of all 4 so that values are rotation invariant
+    #size of GLCM == number of shades present, assumed to be 255 (all shades of gray)
+    GLCM = skimg.greycomatrix(im,                                               #image 
+                              [1],                                              #pixel offsets, 1 implies 1 pixel shift each time
+                              [0, np.pi/4, np.pi/2, 3*np.pi/4],                 #angles in radians - 4 given to make it rotational invariant
+                              normed="true")                                    #normalised values, sum of matrix results to 1
+    inputMatrix(sample, 4) = skimg.greycoprops(x, 'contrast').mean()
+    inputMatrix(sample, 5) = skimg.greycoprops(x, 'homogeneity').mean()
+    inputMatrix(sample, 6) = skimg.greycoprops(x, 'ASM').mean()
+    inputMatrix(sample, 7) = skimg.greycoprops(x, 'correlation').mean()
+    inputMatrix(sample, 8) = skimg.greycoprops(x, 'energy').mean()
+    entropy = ((skm.shannon_entropy(x[:,:,0,0])) + 
+               (skm.shannon_entropy(x[:,:,0,1])) + 
+               (skm.shannon_entropy(x[:,:,0,2])) + 
+               (skm.shannon_entropy(x[:,:,0,3]))) / 4
+    inputMatrix(sample, 9) = entropy
 
-
-
-##IMAGE FEATURES - intensity features from grayscale original image
-def getVariance(x):
-	return np.var(x) / x.size
-
-def getMean(x):
-	return x.mean() / x.size
-
-def getKurtosis(x):
-	return kurtosis(x)
-
-def getSkewness (x):
- 	return skew(x)
-
-##==================================================================================
-##texture features - gray level cooccurrence matrix 
-#these require calculations along 4 spatial orientations (0, 45, 90 and 135 degrees) 
-#and then take the average of all 4 so that values are rotation invariant
-
-#size of GLCM == number of shades present, assumed to be 255 (all shades of gray)
-def getContrast(x):
-	value=skimg.greycoprops(x, 'contrast').mean()
-	print("CONTRAST: "+str(value))
-	print(skimg.greycoprops(x, 'contrast'))
-	print("+++++++++++++++++++++++++++++++++++")
-	return skimg.greycoprops(x, 'contrast')
-
-def getHomogeneity(x):
-	value = skimg.greycoprops(x, 'homogeneity').mean()
-	print("HOMOGENEITY: "+str(value))
-	print(skimg.greycoprops(x, 'homogeneity'))
-	print("+++++++++++++++++++++++++++++++++++")
-	return skimg.greycoprops(x, 'homogeneity')
-
-def getASM(x):
-	value = skimg.greycoprops(x, 'ASM').mean()
-	print("ASM: "+ str(value))
-	print(skimg.greycoprops(x, 'ASM'))
-	print("+++++++++++++++++++++++++++++++++++")
-	return skimg.greycoprops(x, 'ASM')
-
-def getCorrelationCoeff(x):
-	value = skimg.greycoprops(x, 'correlation').mean()
-	print("CORRELATION COEFFICIENT: " + str(value))
-	print(skimg.greycoprops(x, 'correlation'))
-	print("+++++++++++++++++++++++++++++++++++")
-	return skimg.greycoprops(x, 'correlation')
-
-
-def getEnergy(x):
-	value = skimg.greycoprops(x, 'energy').mean()
-	print("ENERGY: "+str(value))
-	print(skimg.greycoprops(x, 'energy'))
-	print("+++++++++++++++++++++++++++++++++++")
-	return skimg.greycoprops(x, 'energy')
-
-
-#calculating the entropy
-def getEntropy(x):
-	entropy0 = skm.shannon_entropy(x[:,:,0,0])
-	entropy45 = skm.shannon_entropy(x[:,:,0,1])
-	entropy90 = skm.shannon_entropy(x[:,:,0,2])
-	entropy135 = skm.shannon_entropy(x[:,:,0,3])
-	entropy = (entropy0 + entropy45 + entropy90 + entropy135) / 4
-	print("ENTROPY: "+str(entropy))
-	return entropy
-
-
-
-
+def getShapeFeatures(im, sample):
+    inputMatrix(sample, 10 = )
 #pixels = img.imread('puppy.jpg')
 #print(pixels)
 image = cv2.imread('thresh_35.png', cv2.IMREAD_GRAYSCALE) #note that cv2.IMREAD_GRAYSCALE == 0
 print("____________________________________________________")
 print(image)
-
-image_flat = np.copy(image).flatten()
-print("____________________________________________________")
-#image_flat.flatten()
-print(image_flat)
-print("____________________________________________________")
-
-print("variance: ")
-print(getVariance(image))
-print("mean: ")
-print(getMean(image))
-print("kurtosis: ")
-print(getKurtosis(image_flat))
-print("skewness: ")
-print(getSkewness(image_flat))
-
-skGLCM = skimg.greycomatrix(image, [1], [0, np.pi/4, np.pi/2, 3*np.pi/4], normed="true")
-print("=======================================================")
-print("0 deg")
-glcm0 = skGLCM[:,:,0,0]
-print(glcm0)
-print("=======================================================")
-print("45 deg")
-glcm45 = skGLCM[:,:,0,1]
-print(glcm45)
-print("=======================================================")
-print("90 deg")
-glcm90 = skGLCM[:,:,0,2]
-print(glcm90)
-print("=======================================================")
-print("135 deg")
-glcm135 = skGLCM[:,:,0,3]
-print(glcm135)
-print("=======================================================")
 
 
 getHomogeneity(skGLCM)
@@ -174,21 +125,13 @@ plt.show()
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
-#NEURAL NETWORK PART - TRINING ONLY
+#NEURAL NETWORK PART - TRAINING ONLY
 
 def sigmoid(x):
 	return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(x):
 	return x * (1 - x) 
-
-in_neurons = 20
-l1_neurons = 12
-l2_neurons = 6
-out_neurons = 5
-samplesize = 100	#arbitrarily chosen
-learningRate = 0.1 	#arbitrarily chosen
-
 
 np.random.seed(1)
 
