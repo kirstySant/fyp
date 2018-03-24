@@ -24,10 +24,41 @@ learningRate = 0.1 	#arbitrarily chosen
 
 inputMatrixSize = (samplesize, in_neurons)
 inputMatrix = np.empty(inputMatrixSize)
+
+def getGrayscaleFeatures(im, sample):
+    
+    #intensity features
+    im_flat = np.copy(im).flatten()     #flatten to be able to compute skewness and kurtosis
+    inputMatrix[sample, 0] = im.mean() / im.size
+    inputMatrix[sample, 1] = np.var(im) / im.size
+    inputMatrix[sample, 2] = skew(im_flat)
+    inputMatrix[sample, 3] = kurtosis(im_flat)
+    
+    #texture features:
+    ##texture features - gray level cooccurrence matrix 
+    #these require calculations along 4 spatial orientations (0, 45, 90 and 135 degrees) 
+    #and then take the average of all 4 so that values are rotation invariant
+    #size of GLCM == number of shades present, assumed to be 255 (all shades of gray)
+    GLCM = skimg.greycomatrix(im,                                               #image 
+                              [1],                                              #pixel offsets, 1 implies 1 pixel shift each time
+                              [0, np.pi/4, np.pi/2, 3*np.pi/4],                 #angles in radians - 4 given to make it rotational invariant
+                              normed="true")                                    #normalised values, sum of matrix results to 1
+    inputMatrix[sample, 4] = skimg.greycoprops(GLCM, 'contrast').mean()
+    inputMatrix[sample, 5] = skimg.greycoprops(GLCM, 'homogeneity').mean()
+    inputMatrix[sample, 6] = skimg.greycoprops(GLCM, 'ASM').mean()
+    inputMatrix[sample, 7] = skimg.greycoprops(GLCM, 'correlation').mean()
+    inputMatrix[sample, 8] = skimg.greycoprops(GLCM, 'energy').mean()
+    entropy = ((skm.shannon_entropy(GLCM[:,:,0,0])) + 
+               (skm.shannon_entropy(GLCM[:,:,0,1])) + 
+               (skm.shannon_entropy(GLCM[:,:,0,2])) + 
+               (skm.shannon_entropy(GLCM[:,:,0,3]))) / 4
+    inputMatrix[sample, 9] = entropy
+
+
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #DATA FETCHING
 #get the path where all iages are being stored, similar to  johm's procedure in CPP
-pathname_grayscale = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png" # refine path name!!!
+pathname_grayscale = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/grayscale/*.png" # refine path name!!!
 filenames_grayscale = sorted(glob.glob(pathname_grayscale))
 
 #print(filenames)
@@ -39,12 +70,12 @@ for i in range(0, len(filenames_grayscale)):
     plt.figure(i+1)
     plt.imshow(image, cmap='gray', interpolation='bicubic')
     getGrayscaleFeatures(image, i)
-    print("image "+str(i))
-    print(inputMatrix[:i])
+    #print("image "+str(i))
+    #print(inputMatrix[:i])
 #plt.show()
 
-pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/*.png" #change path name!!!
-filenames_contour = sorted(glob.blog(pathname_contour))
+pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours*.png" #change path name!!!
+filenames_contour = sorted(glob.glob(pathname_contour))
 
 for j in range(0, len(filenames_contour)):
     currentImagePath = filenames_contour[i]
@@ -52,10 +83,15 @@ for j in range(0, len(filenames_contour)):
     plt.figure(i+len(filenames_grayscale))
     plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
     
-    print("image "+str(j))
-    print(inputMatrix[:j])
-plt.show()
-	
+    #print("image "+str(j))
+    #print(inputMatrix[:j])
+#plt.show()
+
+print(inputMatrix)
+#saving to file for testing purposes. 
+np.savetxt('inputMatrixTest.txt', inputMatrix, fmt='%.2f')
+
+
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #FEATURE EXTRACTION
 #obtain numeric values for the image, thus this function would contain all extractions
@@ -63,37 +99,12 @@ plt.show()
 #or define global matrix for inputs and store directly there <- best option
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
-def getGrayscaleFeatures(im, sample):
-    
-    #intensity features
-    im_flat = np.copy(im).flatten()     #flatten to be able to compute skewness and kurtosis
-    inputMatrix(sample, 0) = im.mean() / im.size
-    inputMatrix(sample, 1) = np.var(im) / im.size
-    inputMatrix(sample, 2) = skew(im_flat)
-    inputMatrix(sample, 3) = kurtosis(im_flat)
-    
-    #texture features:
-    ##texture features - gray level cooccurrence matrix 
-    #these require calculations along 4 spatial orientations (0, 45, 90 and 135 degrees) 
-    #and then take the average of all 4 so that values are rotation invariant
-    #size of GLCM == number of shades present, assumed to be 255 (all shades of gray)
-    GLCM = skimg.greycomatrix(im,                                               #image 
-                              [1],                                              #pixel offsets, 1 implies 1 pixel shift each time
-                              [0, np.pi/4, np.pi/2, 3*np.pi/4],                 #angles in radians - 4 given to make it rotational invariant
-                              normed="true")                                    #normalised values, sum of matrix results to 1
-    inputMatrix(sample, 4) = skimg.greycoprops(x, 'contrast').mean()
-    inputMatrix(sample, 5) = skimg.greycoprops(x, 'homogeneity').mean()
-    inputMatrix(sample, 6) = skimg.greycoprops(x, 'ASM').mean()
-    inputMatrix(sample, 7) = skimg.greycoprops(x, 'correlation').mean()
-    inputMatrix(sample, 8) = skimg.greycoprops(x, 'energy').mean()
-    entropy = ((skm.shannon_entropy(x[:,:,0,0])) + 
-               (skm.shannon_entropy(x[:,:,0,1])) + 
-               (skm.shannon_entropy(x[:,:,0,2])) + 
-               (skm.shannon_entropy(x[:,:,0,3]))) / 4
-    inputMatrix(sample, 9) = entropy
 
 def getShapeFeatures(im, sample):
     inputMatrix(sample, 10 = )
+
+
+
 #pixels = img.imread('puppy.jpg')
 #print(pixels)
 image = cv2.imread('thresh_35.png', cv2.IMREAD_GRAYSCALE) #note that cv2.IMREAD_GRAYSCALE == 0
@@ -101,12 +112,6 @@ print("____________________________________________________")
 print(image)
 
 
-getHomogeneity(skGLCM)
-getASM(skGLCM)
-getCorrelationCoeff(skGLCM)
-getEnergy(skGLCM)
-getContrast(skGLCM) #contrast giving me value that is not normalised. i dont know why.
-getEntropy(skGLCM)
 
 ret, thresh = cv2.threshold(image, 127,255,0)
 image2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)

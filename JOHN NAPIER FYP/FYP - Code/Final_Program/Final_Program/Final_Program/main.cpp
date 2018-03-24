@@ -47,7 +47,7 @@ int max_thresh = 255;
 int image_counter = 1;
 int erosion_elem_Haem = 0;
 int erosion_size_Haem = 1;
-
+int contourDrawn = 0;
 
 
 //Methods All
@@ -182,12 +182,10 @@ void Skull_Stripping()
             //src_gray = src_ss;
             /// Convert the image to Gray
             cvtColor( src_ss, src_gray, CV_BGR2GRAY );
-            //cout <<"line 189" <<endl;
             //imshow("show", src_gray);
             //reading the segmented skull image to use as a reference
-            //cout << "blabala"<< endl;
             src2 = imread(filenames2[j],1);
-            //cout<<"GGGGGGGGGGGGGGGGGGGGG"<<endl;
+
             if(! src2.data )                              // Check for invalid input
         {
             cout <<  "Could not open or find the image" << filenames[j] << endl ;
@@ -469,6 +467,15 @@ void Haemorrhage_Detection()
     stringstream ss2; //to hold image name for the gray threshold 
     string name2 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/GrayThreshold/thresh_";
     string type2 = ".png";
+
+    //adding 2 more stringstreams, to store the segmented skull and equivalent contour image in a directory for training
+    stringstream ss3;
+    string grayscaleName = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/grayscale/gs_";
+    string grayscaleType = ".png";
+
+    stringstream ss4;
+    string contourName = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours/c_";
+    string contourType = ".png";
     
     int ct = 0; //image counters
     
@@ -570,6 +577,18 @@ void Haemorrhage_Detection()
             
             //createTrackbar( " Threshold:", "Source", &thresh, max_thresh, thresh_callback );
             Mat result = thresh_callback( 0, 0 );
+            if(contourDrawn == 1){
+                
+                ss3<<grayscaleName<<ct<<grayscaleType;
+                string grayscaleFilename = ss3.str();
+                ss3.str("");
+                imwrite(grayscaleFilename, gray);
+
+                ss4<<contourName<<ct<<contourType;
+                string contourFilename = ss4.str();
+                ss4.str("");
+                imwrite(contourFilename, result);
+            }
             
             if (ct < 9)
                 ss<<name<<"0"<<(ct += 1)<<type; //joining name and number.
@@ -623,6 +642,7 @@ void Haemorrhage_Detection()
 
 Mat thresh_callback(int, void* ) //taking care of the contour drawing
 {
+    contourDrawn = 0;
     /////////
     //threshold( copyOrig, copyOrig, 245, 255, 4 );
     Mat gray2 = copyOrig;
@@ -705,6 +725,7 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 2800/*3055*/) && maxArea2 < 15000) && (perimeter < 2000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 4000)))
     {
         drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() ); //if conditions are satisfied, draw the contour
+        contourDrawn = 1;
         false_Positive_Count += 1;
         ////////////
         vector<vector<Point> > hull2(contours.size());
@@ -724,6 +745,8 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     imshow( "Contours", drawing );
     waitKey();
     return drawing;
+    //we need a way of extacting the corresponding threshold image and the one marked. how?
+    
 }
 
 void Erosion_Haem( int, void* ) //Erosion for skull
