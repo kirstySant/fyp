@@ -60,32 +60,40 @@ def getGrayscaleFeatures(im, sample):
 #get the path where all iages are being stored, similar to  johm's procedure in CPP
 pathname_grayscale = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/grayscale/*.png" # refine path name!!!
 filenames_grayscale = sorted(glob.glob(pathname_grayscale))
+pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours/*.png" #change path name!!!
+filenames_contour = sorted(glob.glob(pathname_contour))
 
 #print(filenames)
 for i in range(0, len(filenames_grayscale)):
     currentImagePath = filenames_grayscale[i]
+    contourImagePath = filenames_contour[i]
     #print(currentImagePath)
     #printing all images to check they are ok
     image = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-    plt.figure(i+1)
+    contour_image = cv2.imread(contourImagePath, cv2.IMREAD_GRAYSCALE)
+    plt.figure()
     plt.imshow(image, cmap='gray', interpolation='bicubic')
-    getGrayscaleFeatures(image, i)
+    plt.figure()
+    plt.imshow(contour_image, cmap='gray', interpolation='bicubic')
+    #getGrayscaleFeatures(image, i)
     #print("image "+str(i))
     #print(inputMatrix[:i])
-#plt.show()
 
-pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours*.png" #change path name!!!
-filenames_contour = sorted(glob.glob(pathname_contour))
 
-for j in range(0, len(filenames_contour)):
-    currentImagePath = filenames_contour[i]
-    image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-    plt.figure(i+len(filenames_grayscale))
-    plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
+#pathname_contour = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours*.png" #change path name!!!
+#filenames_contour = sorted(glob.glob(pathname_contour))
+
+#for j in range(0, len(filenames_contour)):
+
+    #print("entered in contor loop")
+    #currentImagePath = filenames_contour[j]
+    #image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+    #plt.figure(j)#i+len(filenames_grayscale))
+    #plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
     
     #print("image "+str(j))
     #print(inputMatrix[:j])
-#plt.show()
+plt.show()
 
 print(inputMatrix)
 #saving to file for testing purposes. 
@@ -100,33 +108,33 @@ np.savetxt('inputMatrixTest.txt', inputMatrix, fmt='%.2f')
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
 
-def getShapeFeatures(im, sample):
-    inputMatrix(sample, 10 = )
+#def getShapeFeatures(im, sample):
+#    inputMatrix(sample, 10 = )
 
 
 
 #pixels = img.imread('puppy.jpg')
 #print(pixels)
-image = cv2.imread('thresh_35.png', cv2.IMREAD_GRAYSCALE) #note that cv2.IMREAD_GRAYSCALE == 0
-print("____________________________________________________")
-print(image)
+#image = cv2.imread('thresh_35.png', cv2.IMREAD_GRAYSCALE) #note that cv2.IMREAD_GRAYSCALE == 0
+#print("____________________________________________________")
+#print(image)
 
 
 
-ret, thresh = cv2.threshold(image, 127,255,0)
-image2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#ret, thresh = cv2.threshold(image, 127,255,0)
+#image2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-plt.figure(1)
-plt.imshow(image, cmap='gray', interpolation='bicubic')
+#plt.figure(1)
+#plt.imshow(image)
 
-plt.figure(2)
-for count in contours:
-	f=count+2
-	plt.figure()
-	cv2.drawContours(image2, [count], 0, (0,255,0), 3)
+#plt.figure(2)
+#for count in contours:
+	#f=count+2
+	#plt.figure()
+	#cv2.drawContours(image2, [count], 0, (0,255,0), 3)
 
-plt.imshow(image2, cmap='gray', interpolation='bicubic')
-plt.show()
+#plt.imshow(image2, cmap='gray', interpolation='bicubic')
+#plt.show()
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
