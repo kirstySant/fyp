@@ -98,15 +98,39 @@ def getShapeFeatures(im, sample):
     inputMatrix[sample, 10] = maxArea
     #element 11 = perimiter - already calculated above!
     inputMatrix[sample, 11] = maxPerim
-    #element 12 = major axis length
+    
     boundingRect = cv2.minAreaRect(contours[maxAreaLoc])
+    (_, _), (w, h), theta = cv2.minAreaRect(contours[maxAreaLoc])
     print(boundingRect)
+    print(str(w)+" | "+str(h)+" || "+str(theta))
+
+    #element 12 = major axis length
     #element 13 = minor axis length
+    if(w < h):
+    	inputMatrix[sample, 12] = h
+    	inputMatrix[sample, 13] = w
+    else:
+    	inputMatrix[sample, 12] = w
+    	inputMatrix[sample, 13] = h
+    
     #element 14 = orientation
+    inputMatrix[sample, 14] = theta
+
     #element 15 = extent
+    boundingRectArea = w*h
+    extent = maxArea / boundingRectArea
+    inputMatrix[sample, 15] = extent
+    
     #element 16 = solidity
+    convexHullArea = cv2.contourArea(cv2.convexHull(contours[maxAreaLoc]))
+    solidity = maxArea / convexHullArea
+    inputMatrix[sample, 16] = solidity
+    
     #element 17 = convex area
+    inputMatrix[sample, 17] = convexHullArea
+    
     #element 18 = equivdiameter
+    ##let's forget about this for now , see what happens
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
