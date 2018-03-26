@@ -587,7 +587,7 @@ void Haemorrhage_Detection()
                 ss4<<contourName<<ct<<contourType;
                 string contourFilename = ss4.str();
                 ss4.str("");
-                imwrite(contourFilename, result);
+                imwrite(contourFilename, showThresh);
             }
             
             if (ct < 9)
@@ -699,10 +699,10 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     
     double maxArea2 = 0;
     vector<double> areas(contours.size());
-    
+    cout<<"line 702"<<endl;
     for(int i = 0; i < contours.size(); i++)
     {
-        //cout<<contours[i]<<"-----"<<endl;
+        cout<<contours[i]<<"-----"<<endl;
         areas[i] = contourArea(Mat(contours[i]));
         if (areas[i] > maxArea2)
         {
