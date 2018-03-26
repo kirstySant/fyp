@@ -14,23 +14,36 @@ from scipy.stats import kurtosis, skew
 
 ##=======================##
 #global definitions
-in_neurons = 20
+in_neurons = 18
 l1_neurons = 12
 l2_neurons = 6
 out_neurons = 5
-samplesize = 100	#arbitrarily chosen
+samplesize = 10	#arbitrarily chosen
 learningRate = 0.1 	#arbitrarily chosen
 
 
 inputMatrixSize = (samplesize, in_neurons)
 inputMatrix = np.empty(inputMatrixSize)
+#attempting to apply sigmoid function to input matrix to get normalised values (between -1 and 1)
+normalisedInputMatrix = np.zeros(inputMatrixSize)
+
+def sigmoid(x):
+	return 1 / (1 + np.exp(-x))
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#FEATURE EXTRACTION
+#obtain numeric values for the image, thus this function would contain all extractions
+#store extractions in an array that will later be appended to the matrix of input data
+#or define global matrix for inputs and store directly there <- best option
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def getGrayscaleFeatures(im, sample):
     
     #intensity features
     im_flat = np.copy(im).flatten()     #flatten to be able to compute skewness and kurtosis
-    inputMatrix[sample, 0] = im.mean() / im.size
-    inputMatrix[sample, 1] = np.var(im) / im.size
+    inputMatrix[sample, 0] = im.mean()
+    inputMatrix[sample, 1] = np.var(im)
     inputMatrix[sample, 2] = skew(im_flat)
     inputMatrix[sample, 3] = kurtosis(im_flat)
     
@@ -172,50 +185,37 @@ for j in range(0, len(filenames_contour)):
     #print(inputMatrix[:j])
 
 #plt.show()
-print(inputMatrix)
+#print(inputMatrix)
 #saving to file for testing purposes. 
-np.savetxt('inputMatrixTest.txt', inputMatrix, fmt='%.2f')
-
-
-#-----------------------------------------------------------------------------------------------------------------------------------------
-#FEATURE EXTRACTION
-#obtain numeric values for the image, thus this function would contain all extractions
-#store extractions in an array that will later be appended to the matrix of input data
-#or define global matrix for inputs and store directly there <- best option
-#-----------------------------------------------------------------------------------------------------------------------------------------
+np.savetxt('inputMatrixTest.txt', inputMatrix, fmt='%.4f')
 
 
 
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#NORMALISING THE INPUT MATRIX
 
-#pixels = img.imread('puppy.jpg')
-#print(pixels)
-#image = cv2.imread('thresh_35.png', cv2.IMREAD_GRAYSCALE) #note that cv2.IMREAD_GRAYSCALE == 0
-#print("____________________________________________________")
-#print(image)
+minColValues = np.amin(inputMatrix, axis=0)
+maxColValues = np.amax(inputMatrix, axis=0)
 
+denom = maxColValues - minColValues
+print(denom)
 
+np.savetxt('denom.txt', (maxColValues, minColValues, denom), fmt ='%.4f')
 
-#ret, thresh = cv2.threshold(image, 127,255,0)
-#image2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+numeratorTransposed = inputMatrix.T - minColValues.T[:,None]
+#print(numerator)
+#np.savetxt('numerator.txt', (inputMatrix), fmt='%.4f')
+np.savetxt('numerator.txt', numeratorTransposed.T, fmt='%.4f')
 
-#plt.figure(1)
-#plt.imshow(image)
-
-#plt.figure(2)
-#for count in contours:
-	#f=count+2
-	#plt.figure()
-	#cv2.drawContours(image2, [count], 0, (0,255,0), 3)
-
-#plt.imshow(image2, cmap='gray', interpolation='bicubic')
-#plt.show()
-
+temp = np.divide(numeratorTransposed.T, denom)
+temp2 = np.multiply(temp, 2)
+normalisedInputMatrix = np.subtract(temp2, 1)
+np.savetxt('normalised.txt', normalisedInputMatrix, fmt='%.4f')
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #NEURAL NETWORK PART - TRAINING ONLY
 
-def sigmoid(x):
-	return 1 / (1 + np.exp(-x))
+
 
 def sigmoid_derivative(x):
 	return x * (1 - x) 
