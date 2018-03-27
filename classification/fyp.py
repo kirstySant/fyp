@@ -18,7 +18,7 @@ in_neurons = 18
 l1_neurons = 12
 l2_neurons = 6
 out_neurons = 5
-samplesize = 10	#arbitrarily chosen
+samplesize = 20	#arbitrarily chosen
 learningRate = 0.1 	#arbitrarily chosen
 
 
@@ -26,6 +26,7 @@ inputMatrixSize = (samplesize, in_neurons)
 inputMatrix = np.empty(inputMatrixSize)
 #attempting to apply sigmoid function to input matrix to get normalised values (between -1 and 1)
 normalisedInputMatrix = np.zeros(inputMatrixSize)
+expectedOutputMatrix = np.zeros((samplesize, out_neurons))
 
 def sigmoid(x):
 	return 1 / (1 + np.exp(-x))
@@ -211,7 +212,33 @@ temp = np.divide(numeratorTransposed.T, denom)
 temp2 = np.multiply(temp, 2)
 normalisedInputMatrix = np.subtract(temp2, 1)
 np.savetxt('normalised.txt', normalisedInputMatrix, fmt='%.4f')
+#-----------------------------------------------------------------------------------------------------------------------------------------
+#READING RESULT FILE AND MAPPTING IT INTO A 2D ARRAY
+trainingExpectedResults = open("trainingExpectedOutputs.txt", "r")
+index = 0;
+for line in trainingExpectedResults:
+	if(line == "EDH\n"):
+		expectedOutputMatrix[index] = [1,0,0,0,0]
+		print("epidural")
+	elif( line == "SDH\n"):
+		expectedOutputMatrix[index] = [0,1,0,0,0]
+		print ("subdural")
+	elif( line == "ICH\n"):
+		expectedOutputMatrix[index] = [0,0,1,0,0]
+		print ("intracranial")
+	elif( line == "IVH\n"):
+		expectedOutputMatrix[index] = [0,0,0,1,0]
+		print ("intra-ventricular")
+	elif( line == "NO\n"):
+		expectedOutputMatrix[index] = [0,0,0,0,1]
+		print ("no hemorrhage detected")
+	else:
+		print("incorrect value in file line "+ str(index))
 
+	index += 1
+	#print(line)
+trainingExpectedResults.close()
+np.savetxt('expectedOutputMatrix.txt', expectedOutputMatrix)
 #-----------------------------------------------------------------------------------------------------------------------------------------
 #NEURAL NETWORK PART - TRAINING ONLY
 
@@ -222,7 +249,8 @@ def sigmoid_derivative(x):
 
 np.random.seed(1)
 
-X = np.random.randint(2, size=(samplesize, in_neurons))
+#X = np.random.randint(2, size=(samplesize, in_neurons))
+X = normalisedInputMatrix
 Y = np.random.randint(2, size=(samplesize, out_neurons))
 
 w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
