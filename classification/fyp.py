@@ -16,6 +16,7 @@ samplesize = 160	#arbitrarily chosen
 learningRate = 0.05 
 testingContour = None
 contourTestImage = None
+epochNumber = 10000
 w0 = np.zeros((in_neurons, l1_neurons))
 w1 = np.zeros((l1_neurons, l2_neurons))
 w2 = np.zeros((l2_neurons, out_neurons))
@@ -191,18 +192,29 @@ def sigmoid(x):
 def sigmoid_derivative(x):
 	return x * (1 - x) 
 
-def TrainNeuralNetwork(inputMatrix, outputMatrix):
+def initialiseNeuralNetwork():
+	global w0
+	global w1
+	global w2
+
 	np.random.seed(1)
+	w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
+	w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
+	w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
+
+def TrainNeuralNetwork(inputMatrix, outputMatrix):
+	#np.random.seed(1)
 	X = inputMatrix
 	Y = outputMatrix
 	global w0
 	global w1
 	global w2
-	w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
-	w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
-	w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
+	initialiseNeuralNetwork()
+	#w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
+	#w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
+	#w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
 
-	for i in range(0, 1000):
+	for i in range(0, epochNumber):
 		for j in range (0, samplesize):
 
 			#l0 = np.zeros((in_neurons))
@@ -233,8 +245,8 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
 def getTestInputMatrix():
 	#possible imprivement - get image to be tested  for using glob?
 	global contourTestImage
-	grayscaleTestImage = cv2.imread("Training/28gs_73.png", cv2.IMREAD_GRAYSCALE)
-	contourTestImage = cv2.imread("Training/28c_73.png", cv2.IMREAD_GRAYSCALE)
+	grayscaleTestImage = cv2.imread("Testing/5gs_27.png", cv2.IMREAD_GRAYSCALE)
+	contourTestImage = cv2.imread("Testing/5c_27.png", cv2.IMREAD_GRAYSCALE)
 	grayscaleTest = getGrayscaleFeatures(grayscaleTestImage)
 	contoursTest = getShapeFeatures(contourTestImage)
 	testInput = np.zeros(18)
@@ -288,12 +300,14 @@ resultString = None
 print(inferredResult)
 
 if(inferredResult[0] == 1):
-	resultString="EDH - %3.f" % finalPercentages[0] +"% confident"
+	confidence = format(finalPercentages[0], '.4f')
+	resultString="EDH - "+ confidence +"% confident"
 if(inferredResult[1] == 1):
-	resultString="SDH - "+str(finalPercentages[1])+"% confident"
+	confidence = format(finalPercentages[1], '.4f')
+	resultString="SDH - "+ confidence + "% confident"
 if(inferredResult[2] == 1):
 	confidence = format(finalPercentages[2], '.4f')
-	resultString="ICH - "+ confidence +"% confident"
+	resultString="ICH - "+ confidence + "% confident"
 
 resultingImage = cv2.cvtColor(contourTestImage, cv2.COLOR_GRAY2BGR)
 cv2.drawContours(resultingImage, [testingContour], 0, (0,255,0), 5)
