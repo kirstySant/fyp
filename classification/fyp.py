@@ -11,9 +11,9 @@ from scipy.stats import kurtosis, skew
 in_neurons = 18
 l1_neurons = 12
 l2_neurons = 6
-out_neurons = 5
-samplesize = 211	#arbitrarily chosen
-learningRate = 0.1
+out_neurons = 3
+samplesize = 160	#arbitrarily chosen
+learningRate = 0.05 
 testingContour = None
 contourTestImage = None
 w0 = np.zeros((in_neurons, l1_neurons))
@@ -59,7 +59,7 @@ def getShapeFeatures(im):
     maxAreaLoc = -1
     maxPerim = 0
 
-    print("in getGrayFeatures")
+    #print("in getGrayFeatures")
     for i in range(1, len(areas)):
     	areas[i] = cv2.contourArea(contours[i])
     	if(areas[i] > maxArea):
@@ -68,17 +68,17 @@ def getShapeFeatures(im):
 
 
     maxPerim = cv2.arcLength(contours[maxAreaLoc], True)
-    print(str(maxArea)+" || AT || "+str(maxAreaLoc)+" || PERIM = "+str(maxPerim))
-    #drawing = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+    #print(str(maxArea)+" || AT || "+str(maxAreaLoc)+" || PERIM = "+str(maxPerim))
+    drawing = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
     global testingContour
     testingContour = contours[maxAreaLoc]
-    #cv2.drawContours(drawing, contours, maxAreaLoc, (0,255,0), 5)
+    cv2.drawContours(drawing, contours, maxAreaLoc, (0,255,0), 5)
     #cv2.namedWindow("contours", cv2.WINDOW_AUTOSIZE)
     #cv2.imshow("contours", drawing)
     #cv2.namedWindow("original", cv2.WINDOW_AUTOSIZE)
     #cv2.imshow("original", originalImage)
     #cv2.waitKey()
-    plt.close('all')
+
     contourResults[0] = maxArea
     contourResults[1] = maxPerim
     
@@ -109,32 +109,34 @@ def getTrainingInputMatrix():
 	pathname_grayscale = "Training/grayscale/*.png" # refine path name!!!
 	filenames_grayscale = sorted(glob.glob(pathname_grayscale))
 	pathname_contour = "Training/contours/*.png" #change path name!!!
+	#outfile = open("filenames_gs.txt", 'w')
+	#outfile.write("\n".join(filenames_grayscale))
+	#outfile.close()
 	filenames_contour = sorted(glob.glob(pathname_contour))
-
+	#outfile2 = open("filenames_cont.txt", 'w')
+	#outfile2.write("\n".join(filenames_contour))
+	#np.savetxt("filenames_contours.txt", filenames_contour)
+	#np.savetxt("filenames_grayscale.txt", filenames_grayscale)
 	inputMatrix = np.empty((samplesize, in_neurons))
+	print("generating input training matrix. . .")
 	for i in range(0, len(filenames_grayscale)):
-		print(str(i))
+		#print(str(i+1))
 		currentImagePath = filenames_grayscale[i]
 		image = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-		if currentImagePath.find('EDH'):
-			print(currentImagePath)
-		if currentImagePath.find('SDH'):
-			print(currentImagePath)
-		if currentImagePath.find('ICH'):
-			print(cur)
-		plt.figure(i+1)
-		plt.imshow(image, cmap='gray', interpolation='bicubic')
+		#plt.figure(i+1)
+		#plt.imshow(image, cmap='gray', interpolation='bicubic')
 
 		grayscale = getGrayscaleFeatures(image)
 
 		currentImagePath = filenames_contour[i]
 		image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
 		contours = getShapeFeatures(image_contour)
-		plt.figure(i+len(filenames_grayscale)+1)
-		plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
+		#plt.figure(i+len(filenames_grayscale)+1)
+		#plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
     
 		inputMatrix[i, 0:10] = grayscale
 		inputMatrix[i, 10:18] = contours
+	print("done")
 	return inputMatrix
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -155,24 +157,24 @@ def normaliseMatrix(matrix):
 #get output training matrix
 def getTrainingOutputMatrix():
 	expectedOutputMatrix = np.zeros((samplesize, out_neurons))
-	trainingExpectedResults = open("trainingExpectedOutputs.txt", "r")
-	index = 0;
+	trainingExpectedResults = open("Training/expected_outputs.txt", "r")
+	index = 0
 	for line in trainingExpectedResults:
 		if(line == "EDH\n"):
-			expectedOutputMatrix[index] = [1,0,0,0,0]
+			expectedOutputMatrix[index] = [1,0,0]#,0,0]
 			#print("epidural")
 		elif( line == "SDH\n"):
-			expectedOutputMatrix[index] = [0,1,0,0,0]
+			expectedOutputMatrix[index] = [0,1,0]#,0,0]
 			#print ("subdural")
 		elif( line == "ICH\n"):
-			expectedOutputMatrix[index] = [0,0,1,0,0]
+			expectedOutputMatrix[index] = [0,0,1]#,0,0]
 			#print ("intracranial")
-		elif( line == "IVH\n"):
-			expectedOutputMatrix[index] = [0,0,0,1,0]
-			#print ("intra-ventricular")
-		elif( line == "NO\n"):
-			expectedOutputMatrix[index] = [0,0,0,0,1]
-			#print ("no hemorrhage detected")
+		#elif( line == "IVH\n"):
+		#	expectedOutputMatrix[index] = [0,0,0,1,0]
+		#	print ("intra-ventricular")
+		#elif( line == "NO\n"):
+		#	expectedOutputMatrix[index] = [0,0,0,0,1]
+		#	print ("no hemorrhage detected")
 		else:
 		 	print("incorrect value in file line "+ str(index))
 
@@ -187,13 +189,12 @@ def sigmoid(x):
 	return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(x):
-	return sigmoid(x) * (1 - sigmoid(x)) 
+	return x * (1 - x) 
 
 def TrainNeuralNetwork(inputMatrix, outputMatrix):
-	np.random.seed()
+	np.random.seed(1)
 	X = inputMatrix
 	Y = outputMatrix
-	f = open("error.txt", "w+")
 	global w0
 	global w1
 	global w2
@@ -201,35 +202,39 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
 	w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
 	w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
 
-	for i in range(0, 50000):
-		l0 = X
-		l1 = sigmoid(np.dot(l0, w0))
-		l2 = sigmoid(np.dot(l1, w1))
-		l3 = sigmoid(np.dot(l2, w2))
+	for i in range(0, 1000):
+		for j in range (0, samplesize):
 
-		l3_error = Y - l3 								#error in output
-		f.write("Error for line "+str(i)+": "+str(np.mean(l3_error)))
-		l3_delta = l3_error * sigmoid_derivative(l3)	#delta for output layer, will be used to alter the weights
+			#l0 = np.zeros((in_neurons))
+			l0 = np.array(X[j,], ndmin=2)
+			np.reshape(l0, (1, in_neurons))
+			l1 = sigmoid(np.dot(l0, w0))
+			l2 = sigmoid(np.dot(l1, w1))
+			l3 = sigmoid(np.dot(l2, w2))
 
-		l2_error = np.dot(l3_delta, w2.T)
-		l2_delta = l2_error * sigmoid_derivative(l2)
+			l3_error = Y[j, :] - l3 								#error in output
 
-		l1_error = np.dot(l2_delta, w1.T)
-		l1_delta = l1_error * sigmoid_derivative(l1)
+			l3_delta = l3_error * sigmoid_derivative(l3)	#delta for output layer, will be used to alter the weights
 
-		w2 += np.dot(l2.T, l3_delta) * learningRate
-		w1 += np.dot(l1.T, l2_delta) * learningRate
-		w0 += np.dot(l0.T, l1_delta) * learningRate
+			l2_error = np.dot(l3_delta, w2.T)
+			l2_delta = l2_error * sigmoid_derivative(l2)
 
-	print("percentage error (final) "+str(np.mean(l3_error)))
+			l1_error = np.dot(l2_delta, w1.T)
+			l1_delta = l1_error * sigmoid_derivative(l1)
+			#something's wrong here
+			w2 += np.dot(l2.T, l3_delta) * learningRate
+			w1 += np.dot(l1.T, l2_delta) * learningRate
+			w0 += np.dot(l0.T, l1_delta) * learningRate
+
+		print("percentage error epoch "+str(i)+": "+str(np.mean(l3_error)))
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#get test image from file and test input matrixs
+#get test image from file and test input matrix
 def getTestInputMatrix():
 	#possible imprivement - get image to be tested  for using glob?
 	global contourTestImage
-	grayscaleTestImage = cv2.imread("Testing/gs_49.png", cv2.IMREAD_GRAYSCALE)
-	contourTestImage = cv2.imread("Testing/c_49.png", cv2.IMREAD_GRAYSCALE)
+	grayscaleTestImage = cv2.imread("Training/28gs_73.png", cv2.IMREAD_GRAYSCALE)
+	contourTestImage = cv2.imread("Training/28c_73.png", cv2.IMREAD_GRAYSCALE)
 	grayscaleTest = getGrayscaleFeatures(grayscaleTestImage)
 	contoursTest = getShapeFeatures(contourTestImage)
 	testInput = np.zeros(18)
@@ -237,21 +242,6 @@ def getTestInputMatrix():
 	testInput[10:18] = contoursTest
 	return testInput
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#normalise testing matrix
-def normaliseTestMatrix(matrix):
-	minColValues = np.amin(matrix, axis=0)
-	maxColValues = np.amax(matrix, axis=0)
-
-	denominator = maxColValues - minColValues
-	numerator = (matrix.T - minColValues.T).T
-	temp = np.divide(numerator, denominator)
-	temp2 = np.multiply(temp, 2)
-	normalisedMatrix = np.subtract(temp2, 1)
-
-	return normalisedMatrix
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #pass test case through neural network
 def TestNeuralNetwork(inputMatrix):
@@ -275,13 +265,11 @@ normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
 
 trainingOutputMatrix = getTrainingOutputMatrix()
 
-TrainNeuralNetwork(normalisedTrainingInputMatrix, trainingOutputMatrix)
-print('line 272')
+TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
+
 testInputMatrix = getTestInputMatrix()
-print("line 274")
-testNormalisedInputMatrix = normaliseTestMatrix(testInputMatrix)
-print("line 276")
-finalProbabilities = TestNeuralNetwork(testNormalisedInputMatrix)
+
+finalProbabilities = TestNeuralNetwork(testInputMatrix)
 finalPercentages = np.multiply(finalProbabilities, 100)
 print(finalPercentages)
 maxProb = 0
@@ -295,30 +283,22 @@ for value in finalPercentages:
 
 inferredResult = np.zeros(len(finalPercentages))
 inferredResult[maxProbIndex] = 1
+
 resultString = None
 print(inferredResult)
+
 if(inferredResult[0] == 1):
-	confidence = format(finalPercentages[0], '.4f')
-	resultString="EDH - " +confidence +"% confident"
-elif(inferredResult[1] == 1):
-	confidence = format(finalPercentages[1], '.4f')
-	resultString="SDH - "+confidence+"% confident"
-elif(inferredResult[2] == 1):
+	resultString="EDH - %3.f" % finalPercentages[0] +"% confident"
+if(inferredResult[1] == 1):
+	resultString="SDH - "+str(finalPercentages[1])+"% confident"
+if(inferredResult[2] == 1):
 	confidence = format(finalPercentages[2], '.4f')
 	resultString="ICH - "+ confidence +"% confident"
-elif(inferredResult[3] == 1):
-	confidence = format(finalPercentages[3], '.4f')
-	resultString="IVH - "+cofidence+"% confident"
-elif(inferredResult[4] == 1):
-	confidence = format(finalPercentages[4], '.4f')
-	resultString="NO HEMORRHAGE - "+confidence+"% confident"
-else:
-	print("something")
+
 resultingImage = cv2.cvtColor(contourTestImage, cv2.COLOR_GRAY2BGR)
 cv2.drawContours(resultingImage, [testingContour], 0, (0,255,0), 5)
 cv2.putText(resultingImage, resultString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), True)
 cv2.namedWindow("Final Contour", cv2.WINDOW_AUTOSIZE)
 cv2.imshow("Final Contour", resultingImage)
 cv2.waitKey()
-cv2.destroyAllWindows()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
