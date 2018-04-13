@@ -9,18 +9,28 @@ from scipy.stats import kurtosis, skew
 
 #global definitions
 in_neurons = 18
-l1_neurons = 12
-l2_neurons = 6
 out_neurons = 3
 samplesize = 160	#arbitrarily chosen
 learningRate = 0.05 
 testingContour = None
 contourTestImage = None
-epochNumber = 10000
+epochNumber = 500
+
+
+#---------------------------------------------------------------------------
+#defining parameters for a single-hidden-layer neural network
+hl_neurons = 18
+w0_1hl = np.zeros((in_neurons, hl_neurons))
+w1_1hl = np.zeros((hl_neurons, out_neurons))
+#---------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------
+#defining parameters for a 2-hidden-layer neural network
+l1_neurons = 12
+l2_neurons = 6
 w0 = np.zeros((in_neurons, l1_neurons))
 w1 = np.zeros((l1_neurons, l2_neurons))
 w2 = np.zeros((l2_neurons, out_neurons))
-
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get grayscale features
 def getGrayscaleFeatures(image):
@@ -193,52 +203,74 @@ def sigmoid_derivative(x):
 	return x * (1 - x) 
 
 def initialiseNeuralNetwork():
-	global w0
-	global w1
-	global w2
-
-	np.random.seed(1)
-	w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
-	w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
-	w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
-
+    global w0
+    global w1
+    global w2
+    global w0_1hl
+    global w1_1hl
+    
+    np.random.seed(1)
+    w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
+    w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
+    w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
+    w0_1hl = 2 * np.random.random((in_neurons, hl_neurons)) - 1
+    w1_1hl = 2 * np.random.random((hl_neurons, out_neurons)) - 1
+   
 def TrainNeuralNetwork(inputMatrix, outputMatrix):
 	#np.random.seed(1)
-	X = inputMatrix
-	Y = outputMatrix
-	global w0
-	global w1
-	global w2
-	initialiseNeuralNetwork()
-	#w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
-	#w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
-	#w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
+    X = inputMatrix
+    Y = outputMatrix
+    global w0
+    global w1
+    global w2
+    global w0_1hl
+    global w1_1hl
+    
+    error_1 = open("error_1_hidden_layer.txt", 'w')
+    error_2 = open("error_2_hidden_layer.txt", 'w')
+    
+    initialiseNeuralNetwork()
 
-	for i in range(0, epochNumber):
-		for j in range (0, samplesize):
-
-			#l0 = np.zeros((in_neurons))
-			l0 = np.array(X[j,], ndmin=2)
-			np.reshape(l0, (1, in_neurons))
-			l1 = sigmoid(np.dot(l0, w0))
-			l2 = sigmoid(np.dot(l1, w1))
-			l3 = sigmoid(np.dot(l2, w2))
-
-			l3_error = Y[j, :] - l3 								#error in output
-
-			l3_delta = l3_error * sigmoid_derivative(l3)	#delta for output layer, will be used to alter the weights
-
-			l2_error = np.dot(l3_delta, w2.T)
-			l2_delta = l2_error * sigmoid_derivative(l2)
-
-			l1_error = np.dot(l2_delta, w1.T)
-			l1_delta = l1_error * sigmoid_derivative(l1)
-			#something's wrong here
-			w2 += np.dot(l2.T, l3_delta) * learningRate
-			w1 += np.dot(l1.T, l2_delta) * learningRate
-			w0 += np.dot(l0.T, l1_delta) * learningRate
-
-		print("percentage error epoch "+str(i)+": "+str(np.mean(l3_error)))
+    for i in range(0, epochNumber):
+        for j in range (0, samplesize):
+            l0 = np.array(X[j,], ndmin=2)
+            np.reshape(l0, (1, in_neurons))
+            
+            #------------------------1 hidden layer structure------------------------
+            l1_1 = sigmoid(np.dot(l0, w0_1hl))
+            l2_1 = sigmoid(np.dot(l1_1, w1_1hl))
+            
+            l2_1_error = Y[j, :] - l2_1
+            l2_1_delta = l2_1_error * sigmoid_derivative(l2_1)
+            
+            l1_1_error = np.dot(l2_1_delta, w1_1hl.T)
+            l1_1_delta = l1_1_error * sigmoid_derivative(l1_1)
+            
+            w1_1hl += np.dot(l1_1.T, l2_1_delta) * learningRate
+            w0_1hl += np.dot(l0.T, l1_1_delta) * learningRate
+            
+            #------------------------2 hidden layer structure------------------------
+            l1 = sigmoid(np.dot(l0, w0))
+            l2 = sigmoid(np.dot(l1, w1))
+            l3 = sigmoid(np.dot(l2, w2))
+            
+            l3_error = Y[j, :] - l3 								#error in output
+            l3_delta = l3_error * sigmoid_derivative(l3)	#delta for output layer, will be used to alter the weights
+            
+            l2_error = np.dot(l3_delta, w2.T)
+            l2_delta = l2_error * sigmoid_derivative(l2)
+            
+            l1_error = np.dot(l2_delta, w1.T)
+            l1_delta = l1_error * sigmoid_derivative(l1)
+            
+            w2 += np.dot(l2.T, l3_delta) * learningRate
+            w1 += np.dot(l1.T, l2_delta) * learningRate
+            w0 += np.dot(l0.T, l1_delta) * learningRate
+            
+        print("[1HL]percentage error epoch "+str(i)+": "+str(np.mean(l2_1_error)))
+        error_1.write(str(np.mean(l2_1_error))+"\n")
+        print("[2HL]percentage error epoch "+str(i)+": "+str(np.mean(l3_error)))
+        error_2.write(str(np.mean(l3_error))+"\n")
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get test image from file and test input matrix
@@ -257,18 +289,26 @@ def getTestInputMatrix():
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #pass test case through neural network
 def TestNeuralNetwork(inputMatrix):
-	global w0
-	global w1
-	global w2
-	l0 = inputMatrix
-	l1 = sigmoid(np.dot(l0, w0))
-	l2 = sigmoid(np.dot(l1, w1))
-	l3 = sigmoid(np.dot(l2, w2))
-
-	print(l3)
-	print("showing final result:")
-
-	return l3
+    global w0
+    global w1
+    global w2
+    global w0_1hl
+    global w1_1hl
+    
+    l0 = inputMatrix
+    l1 = sigmoid(np.dot(l0, w0))
+    l2 = sigmoid(np.dot(l1, w1))
+    l3 = sigmoid(np.dot(l2, w2))
+    
+    l1_1 = sigmoid(np.dot(l0, w0_1hl))
+    l2_1 = sigmoid(np.dot(l1_1, w1_1hl))
+    
+    print("1 hidden layer:")
+    print(l2_1)
+    print("2 hidden layers:") 
+    print(l3)
+    print("showing final result:")
+    return l3
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #main function
