@@ -1,0 +1,58 @@
+\documentclass{csfyp}
+\usepackage{dtk-logos} % this is just used for typesetting \BibTeX, and may thus be removed
+\usepackage{wrapfig}
+
+\title{VHDL Code Generator for Digital Filter Implementation}
+\author{Steve Attard}
+\supervisor{Dr. Ing. Trevor Spiteri}
+\date{February 2018}
+
+%\longabstract{
+%  Here is a one page summary of the project. The emphasis should be on motivation, challenge, solution proposed and results.  It should give the reader an opportunity to assess in a few seconds whether it is of interest to him or her.
+%
+%It is worthwhile remembering that this is not a murder mystery, so tell the reader what you have achieved without forcing him or her to read through the rest of the report before they can understand the results of the project.
+%
+%This abstract should not exceed one page, and does not count towards the page limit.
+%}
+
+\begin{document}
+
+\pagenumbering{roman}
+%\tableofcontents
+%\listoffigures
+%\listoftables
+
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+\section{Introduction Chapter}
+\label{s:intro}
+\subsection{Digital Signal Processing Overview}
+With the capabilities of modern technology and overall accessibility, it can be easily said that we are witnessing an exponential growth in multimedia and digital content consumption. It is constantly becoming easier to share and use digital data such as audio, images and video thanks to technological advances in devices such as smartphones and tablets. Although one may think of such digital media as nothing but the usual images, audio recordings and video clips, these are essentially digital signals, which can be transmitted between users to share information.
+
+Due to this escalation in the use of digital media, the demand for digital signal processing (DSP) applications is also increasing rapidly. Digital signal processing is an area which mainly deals with the analysis and modification of digital signals. This field of study is growing in importance, as it is directly involved in anything making use of digital media, ranging from industries such as music production and filming to telecommunications, seismology and biomedicine \cite{tsao2012area} \cite{tekalp2015digital} \cite{gholam1998ecg}.
+
+As already pointed out, despite the fact that digital media can take many forms, these are basically digital signals. To fully understand what a digital signal is, the differences between analogue and digital signals must be clarified. A digital signal is a sequence of discrete values which happen in regular, equally-spaced intervals. This is a fundamental difference between digital and analogue signals, with the latter having a continuous nature. With this conceptual difference in mind, it becomes clear that these two different types of signals cannot be represented in the same domain or time-space. Analogue signals can be represented in a continuous-time domain while digital signals can be represented in a discrete-time domain. Thus, a conversion method known as sampling is needed to convert analogue signals to digital ones, so that DSP techniques can be applied on the digital signals obtained. Sampling is the process of recording the value of a continuous-time signal at specific, equally-spaced points in time. The values recorded every so often form a sequence of numbers, or equivalently, a representation of the original signal in a discrete-time domain. Once the digital signal is obtained, computers are able to analyse and modify the signal through the use of various mathematical operations.
+
+\subsection{Digital Filters}
+Despite the fact that digital signal processing is an area which is continuously evolving with the discovery of new technologies, some devices such as digital filters remain a widely-used, fundamental building block in many applications making use of some form of DSP \cite{daitx2008vhdl}. Digital filters are systems which, in their simplest form, perform a technique known as convolution on an input discrete-time signal and a set of filter coefficients in order to transform the input signal and produce an output signal.
+
+Digital filters can be categorized in two main branches, finite impulse response (FIR) and infinite impulse response (IIR) filters. Infinite impulse response filters make use of feedback, or in other words use previous output values to compute the current value of the output signal. On the other hand finite impulse response filters only use current and previous input values to determine the value of the output signal at any point in time. Thanks to this property, FIR filters can achieve linear phase and guarantee stability, making them preferred in general to IIR filters \cite{rosa2006vhdl}. In this study, only FIR filters will be considered.
+
+While altering a sequence of numbers which represent a signal may seem like a trivial task, there exists many different ways how to go about the filtering process and different mathematical techniques can be used to achieve the same result, each having different benefits. Furthermore, the realization of FIR filters with the desired level of accuracy is a challenging task, since the complexity of implementation increases with the number of coefficients, commonly reffered to as filter order, and precision of computation \cite{meher2008fpga}.
+
+%Fundamentally, the simplest method employed by digital filters to filter a signal is by using a mathematical operation known as convolution. This is an operation which is used to calculate a sum of products.\\
+%Represented as a mathematical function, a finite impulse response filter is described by the equation $y[n] = \sum_{i=0}^{M-1} h[i] x[n-i]$, where $y[n]$ is the output signal, $M$ is the filter order, $h[i]$ is the i$^{th}$ sample of the impulse response (i.e. the i$^{th}$ coefficient) and $x[n-i]$ is the i$^{th}$ term of the flipped input signal. Upon analysing this equation, it becomes clear that the filter's task is to scale the values of the input signal, by multiplying these values with the filter coefficients. The results of multiplication are added to each other (sum of products) to produce the output value $y[n]$. This mathematical operation is known as the convolution of the input signal and the filter coefficients.\\
+The filter coefficients mentioned previously in this section are values which determine how the filter modifies the input signal, therefore the type of filter implemented is based on what values the filter coefficients have. The most commonly used types of filters include low-pass, high-pass and band-pass filters. Although this project does not revolve around filter design in particular, these types of filters will be designed using the MATLAB FDA Toolbox for implementation purposes. This tool provides an easy-to-use interface which allows the user to design a filter by specifying requirements such as filter type, filter order, design method and cut-off frequency among other options. The FDA Toolbox will be discussed at a finer level of detail in the coming sections.
+
+Once the desired filter is designed using such a tool, a structure can be chosen to implement the digital filter characterized by the coefficients obtained. The use of Field Programmable Gate Arrays (FPGA) to implement DSP applications is gaining popularity, since these devices provide high speed thanks to their parallel architecture and offer high reconfigurability \cite{nagakishore2012fpga}. These properties complement the requirements of digital filter implementation very well, leading to numerous efforts in producing optimized and efficient filtering mechanisms on FPGA development boards. FPGAs can be programmed using hardware description languages (HDL) such as Verilog and VHDL.
+
+In this dissertation, a VHDL code generator for digital filter implementation is presented. Written using the Python programming language, the code generator is capable of producing generic VHDL code implementing digital filters synthesisable on FPGA. The user of the presented software can choose from four different filter structures, namely the direct-form, symmetric, transpose and distributed arithmetic structures. These structures will be explained in detail in the upcoming sections of this report. Furthermore, the code generator allows the user to specify the desired precision of computation and a VHDL testbench is also produced, making simulation in software such as ModelSim possible. This is a convenient feature as it offers a way in which the response of the filter can be observed under certain inputs. These simulations can also be done to verify correct computation of the filtering process, by keeping a log of the simulation result and comparing it to theoretical results obtained in another Python project.  Synthesis results obtained using Xilinx ISE are analysed to compare the speed and area efficiency of a number of digital filters produced by the code generator, to the efficiency of the HDL code of the same filters generated using the MATLAB FDA Toolbox.
+
+\nocite{*}
+\bibliographystyle{acm}
+\bibliography{refs}
+\end{document}

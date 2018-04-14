@@ -1,0 +1,13 @@
+\begin{thebibliography}{Sme07}
+
+\bibitem[Mit96]{paper1}
+Johns Mith.
+\newblock The psychology of following references in papers.
+\newblock {\em BDN Computing Surveys}, 28(4):196--199, 1996.
+
+\bibitem[Sme07]{paper2}
+Jo~N. Smeete.
+\newblock {\em Bibliographies I Have Known}.
+\newblock Ringer Publishers, 2007.
+
+\end{thebibliography}
