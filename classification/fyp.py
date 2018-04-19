@@ -11,10 +11,12 @@ from scipy.stats import kurtosis, skew
 in_neurons = 18
 out_neurons = 3
 samplesize = 160	#arbitrarily chosen
-learningRate = 0.05 
+learningRate = 0.1 
 testingContour = None
 contourTestImage = None
-epochNumber = 500
+grayscaleImagesList = None
+contourImagesList = None
+epochNumber = 1000
 
 
 #---------------------------------------------------------------------------
@@ -209,7 +211,7 @@ def initialiseNeuralNetwork():
     global w0_1hl
     global w1_1hl
     
-    np.random.seed(1)
+    #np.random.seed(1)
     w0 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
     w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
     w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
@@ -276,15 +278,31 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
 #get test image from file and test input matrix
 def getTestInputMatrix():
 	#possible imprivement - get image to be tested  for using glob?
-	global contourTestImage
-	grayscaleTestImage = cv2.imread("Testing/5gs_27.png", cv2.IMREAD_GRAYSCALE)
-	contourTestImage = cv2.imread("Testing/5c_27.png", cv2.IMREAD_GRAYSCALE)
-	grayscaleTest = getGrayscaleFeatures(grayscaleTestImage)
-	contoursTest = getShapeFeatures(contourTestImage)
-	testInput = np.zeros(18)
-	testInput[0:10] = grayscaleTest
-	testInput[10:18] = contoursTest
-	return testInput
+    global contourTestImage
+    global grayscaleImagesList
+    global contourImagesList
+    pathname_contour_test = "Testing/contours/*.png" # refine path name!!!
+    filenames_contour_test = sorted(glob.glob(pathname_contour_test))
+    pathname_grayscale_test = "Testing/grayscale/*.png" # refine path name!!!
+    filenames_grayscale_test = sorted(glob.glob(pathname_grayscale_test))
+
+    grayscaleImagesList = filenames_grayscale_test
+    contourImagesList = filenames_contour_test
+
+    testInput = np.empty((len(filenames_contour_test), in_neurons))
+    
+    for i in range(0, len(filenames_contour_test)):
+        currentTestImage = filenames_grayscale_test[i]
+        image = cv2.imread(currentTestImage, cv2.IMREAD_GRAYSCALE)
+        grayscaleTest = getGrayscaleFeatures(image) 
+
+        currentTestImage = filenames_contour_test[i]
+        image = cv2.imread(currentTestImage, cv2.IMREAD_GRAYSCALE)
+        contoursTest = getShapeFeatures(image)
+        testInput[i, 0:10] = grayscaleTest
+        testInput[i, 10:18] = contoursTest
+
+    return testInput
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #pass test case through neural network
@@ -294,65 +312,113 @@ def TestNeuralNetwork(inputMatrix):
     global w2
     global w0_1hl
     global w1_1hl
+
+    resultMatrix_1hl = np.empty((len(inputMatrix), out_neurons))
+    resultMatrix_2hl = np.empty((len(inputMatrix), out_neurons))
+    for i in range(0, len(inputMatrix)):
+        l0 = np.array(inputMatrix[i,], ndmin=2)
+        np.reshape(l0, (1, in_neurons))
+        l1 = sigmoid(np.dot(l0, w0))
+        l2 = sigmoid(np.dot(l1, w1))
+        l3 = sigmoid(np.dot(l2, w2))
     
-    l0 = inputMatrix
-    l1 = sigmoid(np.dot(l0, w0))
-    l2 = sigmoid(np.dot(l1, w1))
-    l3 = sigmoid(np.dot(l2, w2))
+        l1_1 = sigmoid(np.dot(l0, w0_1hl))
+        l2_1 = sigmoid(np.dot(l1_1, w1_1hl))
+        
+        resultMatrix_1hl[i, :] = l2_1
+        resultMatrix_2hl[i, :] = l3
+
+        print("for image "+str(i))
+        print(l2_1)
+        print(l3)
     
-    l1_1 = sigmoid(np.dot(l0, w0_1hl))
-    l2_1 = sigmoid(np.dot(l1_1, w1_1hl))
-    
-    print("1 hidden layer:")
-    print(l2_1)
-    print("2 hidden layers:") 
-    print(l3)
-    print("showing final result:")
-    return l3
+    return resultMatrix_1hl, resultMatrix_2hl
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#main function
+
+def processResults(resultMatrix):
+    global grayscaleImagesList
+    global contourImagesList
+    percentages = np.multiply(resultMatrix, 100)
+    results = []
+    inferredResults = np.zeros((len(resultMatrix), out_neurons))
+    for i in range (0, len(resultMatrix)):
+        maxProbability = 0
+        maxProbabilityIndex = -1
+        index = 0
+        for value in percentages[i,]:
+            if value > maxProbability:
+                maxProbability = value
+                maxProbabilityIndex = index
+            index += 1
+        inferredResults[i, maxProbabilityIndex] = 1
+
+        resultString = ""
+        if(inferredResults[i, 0] == 1):
+            confidence = format(percentages[i, 0], '.4f')
+            resultString = "Case "+str(i + 1)+": EDH - "+ confidence +"% confident"
+        if(inferredResults[i, 1] == 1):
+            confidence = format(percentages[i, 1], '.4f')
+            resultString = "Case "+str(i + 1)+": SDH - "+ confidence +"% confident"
+        if(inferredResults[i, 2] == 1):
+            confidence = format(percentages[i, 2], '.4f')
+            resultString = "Case "+str(i + 1)+": ICH - "+ confidence +"% confident"
+        
+        results.append(resultString)
+        currentImagePath_gs = grayscaleImagesList[i]
+        currentImage_gs = cv2.imread(currentImagePath_gs, cv2.IMREAD_GRAYSCALE)
+
+        currentImagePath_contour = contourImagesList[i]
+        currentImage_contour = cv2.imread(currentImagePath_contour, cv2.IMREAD_GRAYSCALE)
+
+        resultImage = getDrawnContourImage(currentImage_gs, currentImage_contour)
+
+        cv2.putText(resultImage, resultString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), True)
+        windowName = "Final Result for case "+str(i+1)
+        cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
+        cv2.imshow(windowName, resultImage)
+        cv2.waitKey()
+        cv2.destroyWindow(windowName)
+    
+    return results
+
+def getDrawnContourImage(gs_image, contour_image):
+    #original = np.copy(image)
+    im, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    areas = np.zeros([len(contours)])
+    maxArea = 0
+    maxAreaLoc = -1
+
+    for i in range(1, len(areas)):
+    	areas[i] = cv2.contourArea(contours[i])
+    	if(areas[i] > maxArea):
+    		maxArea = areas[i]
+    		maxAreaLoc = i
+
+    #im in following line needs to be the grayscale image
+    drawing = cv2.cvtColor(gs_image, cv2.COLOR_GRAY2BGR)
+    cv2.drawContours(drawing, contours, maxAreaLoc, (0,255,0), 5)
+
+    return drawing
+
+
 trainingInputMatrix = getTrainingInputMatrix()
-normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
-
+#normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
 trainingOutputMatrix = getTrainingOutputMatrix()
-
 TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
-
 testInputMatrix = getTestInputMatrix()
+finalProbabilities1hl, finalProbabilities2hl = TestNeuralNetwork(testInputMatrix)
 
-finalProbabilities = TestNeuralNetwork(testInputMatrix)
-finalPercentages = np.multiply(finalProbabilities, 100)
-print(finalPercentages)
-maxProb = 0
-maxProbIndex = -1
-index = 0
-for value in finalPercentages:
-	if value > maxProb:
-		maxProb = value
-		maxProbIndex = index
-	index +=1
+#For the single hidden layer neural network
+results_1hl = processResults(finalProbabilities1hl)
+outfile = open("results 1hl.txt", 'w')
+outfile.write("\n".join(results_1hl))
+outfile.close()
 
-inferredResult = np.zeros(len(finalPercentages))
-inferredResult[maxProbIndex] = 1
-
-resultString = None
-print(inferredResult)
-
-if(inferredResult[0] == 1):
-	confidence = format(finalPercentages[0], '.4f')
-	resultString="EDH - "+ confidence +"% confident"
-if(inferredResult[1] == 1):
-	confidence = format(finalPercentages[1], '.4f')
-	resultString="SDH - "+ confidence + "% confident"
-if(inferredResult[2] == 1):
-	confidence = format(finalPercentages[2], '.4f')
-	resultString="ICH - "+ confidence + "% confident"
-
-resultingImage = cv2.cvtColor(contourTestImage, cv2.COLOR_GRAY2BGR)
-cv2.drawContours(resultingImage, [testingContour], 0, (0,255,0), 5)
-cv2.putText(resultingImage, resultString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), True)
-cv2.namedWindow("Final Contour", cv2.WINDOW_AUTOSIZE)
-cv2.imshow("Final Contour", resultingImage)
-cv2.waitKey()
+#For the two hidden layer neural network
+results_2hl = processResults(finalProbabilities2hl)
+outfile2 = open("results 2hl.txt", 'w')
+outfile2.write("\n".join(results_2hl))
+outfile2.close()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
