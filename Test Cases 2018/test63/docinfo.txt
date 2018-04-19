@@ -1,0 +1,22 @@
+##DocInfo
+# Folder information file
+
+AVI|0
+Date|Apr 18 2018 14:41:49
+Format_english|28 pages, size: 5.04 Mbytes<br>0 JPEG image(s), 28 PNG image(s)<br>0 MPEG movie(s), 0 AVI movie(s), 0 MOV movie(s)
+Format_french|28 pages, taille: 5.04 Mo<br>0 JPEG image(s), 28 PNG image(s)<br>0 MPEG s&eacute;quence(s), 0 AVI s&eacute;quence(s), 0 MOV s&eacute;quence(s)
+Format_german|28 seiten, gr&ouml;&szlig;e: 5.04 Mbyte<br>0 JPEG Bild(er), 28 PNG Bild(er)<br>0 MPEG Film(e), 0 AVI Film(e), 0 MOV Film(e)
+Format_italian|28 pagine, taglia: 5.04 Mbyte<br>0 JPEG immagine(i), 28 PNG immagine(i)<br>0 MPEG film, 0 AVI film, 0 MOV film
+Format_portuguese|28 p&aacute;ginas, tamanho: 5.04 Mbytes<br>0 JPEG imagem(ns), 28 PNG imagem(ns)<br>0 MPEG anima&ccedil;&atilde;o(&otilde;es), 0 AVI anima&ccedil;&atilde;o(&otilde;es), 0 MOV anima&ccedil;&atilde;o(&otilde;es)
+Format_spanish|28 p&aacute;ginas, tama&ntilde;o: 5.04 Mbytes<br>0 JPEG im&aacute;gen(es), 28 PNG im&aacute;gen(es)<br>0 MPEG secuencia(s), 0 AVI secuencia(s), 0 MOV secuencia(s)
+Hospital|MATER DEI HOSPITAL
+JPEG|0
+Link|index.htm
+MPEG|0
+PNG|28
+Pages|28
+Producer|DataExport
+QTVR|0
+Size|5282815
+Thumbnail|pg001.png
+Title|test63
