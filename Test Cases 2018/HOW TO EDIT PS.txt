@@ -1,0 +1,7 @@
+scripting photoshop
+
+windows- actions - create new folder and create new action - press record button
+*add equaliser filter to image*
+image - adjustments - equalise
+
+file-scripts - image processor - select folder containing images - set new folder to store images in - 
