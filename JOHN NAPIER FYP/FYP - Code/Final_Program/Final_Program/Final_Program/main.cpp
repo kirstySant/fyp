@@ -269,7 +269,7 @@ void ThresholdFinal( int, void* ) //removing skull
     //threshold( dst, dst, 10, 4,3 );
     
     
-    imshow( "Initial Threshold", dst_ss );
+    //imshow( "Initial Threshold", dst_ss );
     waitKey();
 }
 
@@ -279,8 +279,8 @@ void ThresholdKeepSkull( int, void* ) //removing head tissue and brain WM and GM
     threshold( src_gray, dst_ss, 254, max_BINARY_value,3 );
     Dilation( 0, 0 );
     Erosion(0, 0);
-    imshow( "White Threshold", dst_ss );
-    waitKey();
+    //imshow( "White Threshold", dst_ss );
+    //waitKey();
 }
 
 Mat segment(Mat orignalImage, int flag) //Segmentation
@@ -362,10 +362,10 @@ Mat segment(Mat orignalImage, int flag) //Segmentation
     normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
     
     // show the images
-    imshow("original", img0);
-    imshow("mask", mask);
-    imshow("canny", img1);
-    imshow("cropped", crop);
+    //imshow("original", img0);
+    //imshow("mask", mask);
+    //imshow("canny", img1);
+    //imshow("cropped", crop);
     waitKey();
     return crop;
 }
@@ -382,7 +382,7 @@ void Dilation( int, void* ) //Dilation for skull
                                         Point( dilation_size, dilation_size ) );
     /// Apply the dilation operation
     dilate( dst_ss, dst_ss, element );
-    imshow( "Dilation Demo", dst_ss );
+    //imshow( "Dilation Demo", dst_ss );
 }
 
 void Dilation2( int, void* )//Dilation for final image
@@ -397,7 +397,7 @@ void Dilation2( int, void* )//Dilation for final image
                                         Point( dilation_size2, dilation_size2) );
     /// Apply the dilation operation
     dilate( dst_ss, dst_ss, element );
-    imshow( "Dilation Demo", dst_ss );
+    //imshow( "Dilation Demo", dst_ss );
 }
 
 void Erosion( int, void* ) //Erosion for skull
@@ -413,7 +413,7 @@ void Erosion( int, void* ) //Erosion for skull
     
     /// Apply the erosion operation
     erode( dst_ss, dst_ss, element );
-    imshow( "Erosion Demo", dst_ss );
+    //imshow( "Erosion Demo", dst_ss );
 }
 
 void Erosion2( int, void* )//Erosion for final image
@@ -429,7 +429,7 @@ void Erosion2( int, void* )//Erosion for final image
     
     /// Apply the erosion operation
     erode( dst_ss, dst_ss, element );
-    imshow( "Erosion Demo", dst_ss );
+    //imshow( "Erosion Demo", dst_ss );
 }
 
 int findLargestDensity(vector< vector<Point> > contours) //Used to find contour with most amount of pixels.
