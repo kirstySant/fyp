@@ -82,12 +82,12 @@ int main(int argc, const char * argv[]) {
 void Filtering()
 {
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/Testing/new_bleed4Contrast"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/new_bleed4Contrast"; // again we are using the Opencv's embedded "String" class
     
     glob(folder, filenames);
     stringstream ss; //to hold image name;
     //cout << "filtering-glob-done" << endl;
-    string name = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/Testing/testBilateral/bilateral_";
+    string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/testBilateral/bilateral_";
     string type = ".png";
     int ct = 0;
     //cout << "testingbilateral-string-done" << endl;
@@ -100,6 +100,7 @@ void Filtering()
             cerr << "Problem loading image!!!" << filenames[j] << endl ;
         else
         {
+
             
             //cout << "images loaded" << endl;
             dst = src.clone();
@@ -133,10 +134,10 @@ void Skull_Stripping()
 {
 	//cout << "entered skull stripping" << endl;
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/Testing/testBilateral"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/testBilateral"; // again we are using the Opencv's embedded "String" class
     
     vector<String> filenames2; // notice here that we are using the Opencv's embedded "String" class
-    String folder2 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/SegmentedTissue"; // again we are using the Opencv's embedded "String" class
+    String folder2 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedTissue"; // again we are using the Opencv's embedded "String" class
     
     glob(folder, filenames);
     //cout << "skull stripping glob 1" << endl;
@@ -148,10 +149,10 @@ void Skull_Stripping()
     stringstream ss3; //to hold image name;
     stringstream ss4; //to hold image name;
     
-    string name = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/InitialThreshold/threshold_";//location to store the removed skull
-    string name2 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/SegmentedSkull/SegmentedSkull_";//loacation to store the final image
-    string name3 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/RemovedTissue/RemovedTissue_";//location to store the removed tissue
-    string name4 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/SegmentedTissue/SegmentedTissue_"; //location to store the segmented head
+    string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/InitialThreshold/threshold_";//location to store the removed skull
+    string name2 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedSkull/SegmentedSkull_";//loacation to store the final image
+    string name3 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/RemovedTissue/RemovedTissue_";//location to store the removed tissue
+    string name4 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedTissue/SegmentedTissue_"; //location to store the segmented head
     string type = ".jpg";
     int ct = 0; //image counters
     int ct2 = 0;
@@ -269,7 +270,7 @@ void ThresholdFinal( int, void* ) //removing skull
     //threshold( dst, dst, 10, 4,3 );
     
     
-    //imshow( "Initial Threshold", dst_ss );
+    imshow( "Initial Threshold", dst_ss );
     waitKey();
 }
 
@@ -457,24 +458,24 @@ int findLargestDensity(vector< vector<Point> > contours) //Used to find contour 
 void Haemorrhage_Detection()
 {
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/SegmentedSkull"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedSkull"; // again we are using the Opencv's embedded "String" class
     glob(folder, filenames);
     stringstream ss; //to hold image name;
-	string name = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/Haemorrhage/haemorrhage_";//location to store the removed skull
+	string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Haemorrhage/haemorrhage_";//location to store the removed skull
     string type = ".png";
 
     //#### ADDED CODE TO EXTRACT GRAY THRESHOLD IMAGES TO BE FED INTO NEURAL NETWORK ####//
     stringstream ss2; //to hold image name for the gray threshold 
-    string name2 = "/home/kirsty/Desktop/GIT_FYP/fyp/JOHN NAPIER FYP/GrayThreshold/thresh_";
+    string name2 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/GrayThreshold/thresh_";
     string type2 = ".png";
 
     //adding 2 more stringstreams, to store the segmented skull and equivalent contour image in a directory for training
     stringstream ss3;
-    string grayscaleName = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/grayscale/gs_";
+    string grayscaleName = "/home/kirsty/Desktop/fyp/fyp/classification/Training/grayscale/gs_";
     string grayscaleType = ".png";
 
     stringstream ss4;
-    string contourName = "/home/kirsty/Desktop/GIT_FYP/fyp/classification/Training/contours/c_";
+    string contourName = "/home/kirsty/Desktop/fyp/fyp/classification/Training/contours/c_";
     string contourType = ".png";
     
     int ct = 0; //image counters
