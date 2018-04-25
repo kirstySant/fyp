@@ -15,6 +15,8 @@ using namespace cv;
 //Global Variables (Filtering)
 Mat src; Mat dst; Mat dst2;
 
+//flag to see if contor was drawn
+int drawnContour = -1;
 //Global Variables (Skull Stripping)
 int threshold_value = 0;
 int threshold_type = 3;;
@@ -462,7 +464,14 @@ void Haemorrhage_Detection()
     string type = ".png";
     int ct = 0; //image counters
     
-    
+    //saving grayscale and contour image
+    stringstream ss2; //to hold image name;
+    string name2 = "ImagesforClassifier/gs_";//location to store the removed skull
+    string type2 = ".png";
+
+    stringstream ss3; //to hold image name;
+    string name3 = "ImagesforClassifier/contour_";//location to store the removed skull
+    string type3 = ".png";
     
     for(size_t j = 0; j < filenames.size(); ++j)//looping thriugh all the files
     {
@@ -563,9 +572,30 @@ void Haemorrhage_Detection()
             
             string filename = ss.str();
             ss.str("");
+            imshow("result", gray);
             imwrite(filename, result); // saving image
             
             // waitKey(0);
+
+            //check if the contour was drawn, if true then save images to folder
+            if(drawnContour == 1){
+            	if(ct < 9){
+            		ss2<<name2<<"0"<<ct<<type2;
+            		ss3<<name3<<"0"<<ct<<type3;
+            	}
+            	else{
+            		ss2<<name2<<ct<<type2;
+            		ss3<<name3<<ct<<type3;
+            	}
+            	string filename2 = ss2.str();
+            	string filename3 = ss3.str();
+            	ss2.str("");
+            	ss3.str("");
+            	drawnContour = 0;
+            	imwrite(filename2, gray);
+            	imwrite(filename3, showThresh);
+            	
+            }
         }
     }
     
@@ -607,11 +637,13 @@ void Haemorrhage_Detection()
 
 Mat thresh_callback(int, void* ) //taking care of the contour drawing
 {
+	drawnContour = 0;
     /////////
     //threshold( copyOrig, copyOrig, 245, 255, 4 );
     Mat gray2 = copyOrig;
     vector<vector<Point> > original;
     vector<Vec4i> hierarchy2;
+    
     
     
     /////////
@@ -686,8 +718,10 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     color = Scalar(100,0,254 );//pink contour colour
     cv::cvtColor(drawing,drawing,CV_GRAY2BGR); //conversion to colour to show pink contour
     drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() );
-    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 2800/*3055*/) && maxArea2 < 15000) && (perimeter < 2000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 4000)))
+    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 1000/*3055*/) && maxArea2 < 15000) && (perimeter < 2000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
     {
+    	drawnContour = 1;
+    	cout <<"!!CONTOUR DRAWN"<<endl;
         drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() ); //if conditions are satisfied, draw the contour
         false_Positive_Count += 1;
         ////////////

@@ -1,0 +1,29 @@
+40	not detected
+41	not detected
+42	not detected
+43	ok
+44	ok
+45	ok
+46	ok
+47	ok
+48	ok
+49	false positives
+50	false positives
+51	ok
+52	false positives
+53	increase contrast
+54	false positives
+55	increase contrast
+56	increase contrast
+57	false positives
+58	false positives
+59	increase contrast
+60	ok
+61	ok
+62	ok
+63	ok
+64	ok
+65	ok
+66	ok
+67	ok
+68	false positives
