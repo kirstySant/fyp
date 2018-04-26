@@ -10,13 +10,13 @@ from scipy.stats import kurtosis, skew
 #global definitions
 in_neurons = 18
 out_neurons = 3
-samplesize = 160	#arbitrarily chosen
+samplesize = 251	#arbitrarily chosen
 learningRate = 0.1 
 testingContour = None
 contourTestImage = None
 grayscaleImagesList = None
 contourImagesList = None
-epochNumber = 1000
+epochNumber = 500
 
 
 #---------------------------------------------------------------------------
@@ -122,9 +122,9 @@ def getTrainingInputMatrix():
 	pathname_grayscale = "Training/grayscale/*.png" # refine path name!!!
 	filenames_grayscale = sorted(glob.glob(pathname_grayscale))
 	pathname_contour = "Training/contours/*.png" #change path name!!!
-	#outfile = open("filenames_gs.txt", 'w')
-	#outfile.write("\n".join(filenames_grayscale))
-	#outfile.close()
+	outfile = open("filenames_gs.txt", 'w')
+	outfile.write("\n".join(filenames_grayscale))
+	outfile.close()
 	filenames_contour = sorted(glob.glob(pathname_contour))
 	#outfile2 = open("filenames_cont.txt", 'w')
 	#outfile2.write("\n".join(filenames_contour))
@@ -230,10 +230,13 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
     
     error_1 = open("error_1_hidden_layer.txt", 'w')
     error_2 = open("error_2_hidden_layer.txt", 'w')
-    
+    totalMeanError_1hl = 100.0
+    totalMeanError_2hl = 100.0
+    i = 0
     initialiseNeuralNetwork()
-
+    #while (totalMeanError_1hl > 0.00005) and (totalMeanError_2hl > 0.00005) :
     for i in range(0, epochNumber):
+        
         for j in range (0, samplesize):
             l0 = np.array(X[j,], ndmin=2)
             np.reshape(l0, (1, in_neurons))
@@ -248,6 +251,8 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
             l1_1_error = np.dot(l2_1_delta, w1_1hl.T)
             l1_1_delta = l1_1_error * sigmoid_derivative(l1_1)
             
+            w1_1hl_change = np.dot(l1_1.T, l2_1_delta) * learningRate
+            w0_1hl_change = np.dot(l0.T, l1_1_delta) * learningRate
             w1_1hl += np.dot(l1_1.T, l2_1_delta) * learningRate
             w0_1hl += np.dot(l0.T, l1_1_delta) * learningRate
             
@@ -265,14 +270,29 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
             l1_error = np.dot(l2_delta, w1.T)
             l1_delta = l1_error * sigmoid_derivative(l1)
             
+            w2_change = np.dot(l2.T, l3_delta) * learningRate
+            w1_change = np.dot(l1.T, l2_delta) * learningRate
+            w0_change = np.dot(l0.T, l1_delta) * learningRate
             w2 += np.dot(l2.T, l3_delta) * learningRate
             w1 += np.dot(l1.T, l2_delta) * learningRate
             w0 += np.dot(l0.T, l1_delta) * learningRate
             
-        print("[1HL]percentage error epoch "+str(i)+": "+str(np.mean(l2_1_error)))
-        error_1.write(str(np.mean(l2_1_error))+"\n")
-        print("[2HL]percentage error epoch "+str(i)+": "+str(np.mean(l3_error)))
-        error_2.write(str(np.mean(l3_error))+"\n")
+        l2MeanError_1hl = np.mean(w1_1hl_change)
+        l1MeanError_1hl = np.mean(w0_1hl_change)
+        totalMeanError_1hl = np.mean(l2MeanError_1hl + l1MeanError_1hl)
+
+        l3MeanError_2hl = np.mean(w2_change)
+        l2MeanError_2hl = np.mean(w1_change)
+        l1MeanError_2hl = np.mean(w0_change)
+        totalMeanError_2hl = np.mean(l3MeanError_2hl + l2MeanError_2hl + l1MeanError_2hl)
+
+        print("[1HL]percentage error epoch "+str(i)+": "+str(totalMeanError_1hl))
+        error_1.write(str(totalMeanError_1hl)+"\n")
+        print("[2HL]percentage error epoch "+str(i)+": "+str(totalMeanError_2hl))
+        error_2.write(str(totalMeanError_2hl)+"\n")
+
+    error_1.close()
+    error_2.close()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get test image from file and test input matrix
