@@ -1,0 +1,1 @@
+1: learning rate = -0.0075; number of nodes in 1HL NN: 18

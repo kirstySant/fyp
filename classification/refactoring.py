@@ -4,19 +4,21 @@ import skimage.measure as skm
 import numpy as np
 import cv2
 import glob
+import os
 
 from scipy.stats import kurtosis, skew
+from pathlib import Path
 
 #global definitions
 in_neurons = 18
 out_neurons = 3
 samplesize = 251	#arbitrarily chosen
-learningRate = -0.005 
+learningRate = -0.0075 
 testingContour = None
 contourTestImage = None
 grayscaleImagesList = None
 contourImagesList = None
-epochNumber = 1000
+epochNumber = 10000
 
 
 #---------------------------------------------------------------------------
@@ -34,6 +36,11 @@ w0_2 = np.zeros((in_neurons, l1_neurons))
 w1_2 = np.zeros((l1_neurons, l2_neurons))
 w2_2 = np.zeros((l2_neurons, out_neurons))
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+testNumber = 1
+params = str(testNumber)+": learning rate = "+str(learningRate)+"; number of nodes in 1HL NN: "+str(hl_neurons)+"\n"
+
 #get grayscale features
 def getGrayscaleFeatures(image):
     grayscaleResults = np.zeros(10)
@@ -119,38 +126,37 @@ def getShapeFeatures(im):
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get training set images from file
 def getTrainingInputMatrix():
-	pathname_grayscale = "Training/grayscale/*.png" # refine path name!!!
-	filenames_grayscale = sorted(glob.glob(pathname_grayscale))
-	pathname_contour = "Training/contours/*.png" #change path name!!!
-	outfile = open("filenames_gs.txt", 'w')
-	outfile.write("\n".join(filenames_grayscale))
-	outfile.close()
-	filenames_contour = sorted(glob.glob(pathname_contour))
-	#outfile2 = open("filenames_cont.txt", 'w')
-	#outfile2.write("\n".join(filenames_contour))
-	#np.savetxt("filenames_contours.txt", filenames_contour)
-	#np.savetxt("filenames_grayscale.txt", filenames_grayscale)
-	inputMatrix = np.empty((samplesize, in_neurons))
-	print("generating input training matrix. . .")
-	for i in range(0, len(filenames_grayscale)):
-		#print(str(i+1))
-		currentImagePath = filenames_grayscale[i]
-		image = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-		#plt.figure(i+1)
-		#plt.imshow(image, cmap='gray', interpolation='bicubic')
+    filename = "Training/trainingInputMatrix.txt"
+    pathname = Path(filename)
 
-		grayscale = getGrayscaleFeatures(image)
+    if pathname.is_file():
+        inputMatrix = np.loadtxt(filename)
+        print("read training input matrix from file")
 
-		currentImagePath = filenames_contour[i]
-		image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
-		contours = getShapeFeatures(image_contour)
-		#plt.figure(i+len(filenames_grayscale)+1)
-		#plt.imshow(image_contour, cmap='gray', interpolation='bicubic')
-    
-		inputMatrix[i, 0:10] = grayscale
-		inputMatrix[i, 10:18] = contours
-	print("done")
-	return inputMatrix
+    else:
+        pathname_grayscale = "Training/grayscale/*.png" # refine path name!!!
+        filenames_grayscale = sorted(glob.glob(pathname_grayscale))
+        pathname_contour = "Training/contours/*.png" #change path name!!!
+        outfile = open("filenames_gs.txt", 'w')
+        outfile.write("\n".join(filenames_grayscale))
+        outfile.close()
+        filenames_contour = sorted(glob.glob(pathname_contour))
+
+        inputMatrix = np.empty((samplesize, in_neurons))
+        print("generating input training matrix. . .")
+        for i in range(0, len(filenames_grayscale)):
+            currentImagePath = filenames_grayscale[i]
+            image = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+            grayscale = getGrayscaleFeatures(image)
+            currentImagePath = filenames_contour[i]
+            image_contour = cv2.imread(currentImagePath, cv2.IMREAD_GRAYSCALE)
+            contours = getShapeFeatures(image_contour)
+            inputMatrix[i, 0:10] = grayscale
+            inputMatrix[i, 10:18] = contours
+        print("done")
+        np.savetxt(filename, inputMatrix)
+
+    return inputMatrix
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #normalise input matrix
@@ -169,18 +175,27 @@ def normaliseMatrix(matrix):
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get output training matrix
 def getTrainingOutputMatrix():
-	expectedOutputMatrix = np.zeros((samplesize, out_neurons))
-	trainingExpectedResults = open("Training/expected_outputs.txt", "r")
-	index = 0
-	for line in trainingExpectedResults:
-		if(line == "EDH\n"):
-			expectedOutputMatrix[index] = [1,0,0]#,0,0]
+    filename = "Training/trainingExpectedOutputMatrix.txt"
+    pathname = Path(filename)
+
+    if pathname.is_file():
+        expectedOutputMatrix = np.loadtxt(filename)
+        print("read training expected output matrix from file")
+
+    else:
+        print("generating training expectd output matrix . . .")
+        expectedOutputMatrix = np.zeros((samplesize, out_neurons))
+        trainingExpectedResults = open("Training/expected_outputs.txt", "r")
+        index = 0
+        for line in trainingExpectedResults:
+            if(line == "EDH\n"):
+                expectedOutputMatrix[index] = [1,0,0]#,0,0]
 			#print("epidural")
-		elif( line == "SDH\n"):
-			expectedOutputMatrix[index] = [0,1,0]#,0,0]
+            elif( line == "SDH\n"):
+                expectedOutputMatrix[index] = [0,1,0]#,0,0]
 			#print ("subdural")
-		elif( line == "ICH\n"):
-			expectedOutputMatrix[index] = [0,0,1]#,0,0]
+            elif( line == "ICH\n"):
+                expectedOutputMatrix[index] = [0,0,1]#,0,0]
 			#print ("intracranial")
 		#elif( line == "IVH\n"):
 		#	expectedOutputMatrix[index] = [0,0,0,1,0]
@@ -188,13 +203,13 @@ def getTrainingOutputMatrix():
 		#elif( line == "NO\n"):
 		#	expectedOutputMatrix[index] = [0,0,0,0,1]
 		#	print ("no hemorrhage detected")
-		else:
-		 	print("incorrect value in file line "+ str(index))
-
-		index += 1
-	trainingExpectedResults.close()
-
-	return expectedOutputMatrix
+            else:
+                print("incorrect value in file line "+ str(index))
+            index += 1
+        trainingExpectedResults.close()
+        np.savetxt(filename, expectedOutputMatrix)
+        print("done")
+    return expectedOutputMatrix
 #-----------------------s---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #train the neural network
@@ -213,81 +228,165 @@ def initialiseNeuralNetwork():
     
     np.random.seed(1)
     w0_2 = 2 * np.random.random((in_neurons, l1_neurons)) - 1
-    w1 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
-    w2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
-    w0_1hl = 2 * np.random.random((in_neurons, hl_neurons)) - 1
-    w1_1hl = 2 * np.random.random((hl_neurons, out_neurons)) - 1
-   
+    w1_2 = 2 * np.random.random((l1_neurons, l2_neurons)) - 1
+    w2_2 = 2 * np.random.random((l2_neurons, out_neurons)) - 1
+    w0_1 = 2 * np.random.random((in_neurons, hl_neurons)) - 1
+    w1_1 = 2 * np.random.random((hl_neurons, out_neurons)) - 1
+
 def TrainNeuralNetwork(inputMatrix, outputMatrix):
-	#np.random.seed(1)
+	
     X = inputMatrix
     Y = outputMatrix
-    global W0_2
-    global w1
-    global w2
-    global w0_1hl
-    global w1_1hl
+    global w0_2
+    global w1_2
+    global w2_2
+    global w0_1
+    global w1_1
     
-    error_1 = open("error_1_hidden_layer.txt", 'w')
-    error_2 = open("error_2_hidden_layer.txt", 'w')
-    totalMeanError_1hl = 100.0
-    totalMeanError_2hl = 100.0
+    #create new path for new folder where everything will be stored
+    resultsFolder = "Training/Tests/"+str(testNumber)+"/"
+    os.makedirs(resultsFolder)
+
+    #open file to add details re training
+    testList = open("Training/Tests/testKey.txt", "a+")
+    testList.write(params)
+    testList.close()
+    
+    #text files storing MSE recorded for each NN
+    mse_1 = open("Training/Tests/"+str(testNumber)+"/1_MSE.txt", 'w') 
+    mse_2 = open("Training/Tests/"+str(testNumber)+"/2_MSE.txt", 'w')
+    diff_1 = open("Training/Tests/"+str(testNumber)+"/1_Difference.txt", 'w')
+    diff_2 = open("Training/Tests/"+str(testNumber)+"/2_Difference.txt", 'w')
+    miscInfo = open("Training/Tests/"+str(testNumber)+"/OtherValues.txt", 'w') 
     i = 0
     initialiseNeuralNetwork()
-    print(w0_1hl)
-    print(w1_1hl)
+    totalError_1 = 10.0
+    totalError_2 = 10.0
+
+    nn1_converged = False
+    nn2_converged = False
     #while (totalMeanError_1hl > 0.00005) and (totalMeanError_2hl > 0.00005) :
-    
+
     for i in range(0, epochNumber):
+        prevEpochError_1 = totalError_1
+        prevEpochError_2 = totalError_2
         total_dW_in_1_1 = 0
         total_dW_1_out_1 = 0
-        totalError_1 = 0;
+        totalError_1 = 0
+
+        total_dW_in_1_2 = 0
+        total_dW_1_2_2 = 0
+        total_dW_2_out_2 = 0
+        totalError_2 = 0
+
         for j in range (0, samplesize):
             l0 = np.array(X[j,], ndmin=2)
             np.reshape(l0, (1, in_neurons))
 
-            #1 layer 
-            #++++feedforward
-            s1_1 = np.dot(l0, w0_1hl)#working out hidden layer 
-            z1_1 = sigmoid(s1_1)
-            z1_1_deriv = sigmoid_derivative(z1_1).T
-            s2_1 = np.dot(z1_1, w1_1hl) #woroing out outputs
-            z2_1 = sigmoid(s2_1)
-            yHat_1 = z2_1   #computed output
+            ############## ONE HIDDEN LAYER NEURAL NETWORK STRUCTURE 
+            ###### feedforward
+            if(nn1_converged == False):
+                s1_1 = np.dot(l0, w0_1)#working out hidden layer 
+                z1_1 = sigmoid(s1_1)
+                z1_1_deriv = sigmoid_derivative(z1_1).T
+                s2_1 = np.dot(z1_1, w1_1) #woroing out outputs
+                z2_1 = sigmoid(s2_1)
+                yHat_1 = z2_1   #computed output
 
-            #++++++back propagation
-            totalError_1 += np.mean(np.sum(0.5 * (np.square(Y[j, : ] - yHat_1)))) #<-- total error of neural network
+                ###### mean square error
+                totalError_1 += np.mean(np.sum(0.5 * (np.square(Y[j, : ] - yHat_1)))) #<-- total error of neural network
+                #print(str(totalError))
+
+                ###### back propagation
+                delta_out_1 = (yHat_1 - Y[j,:]).T
+                delta_1_1 = np.multiply(z1_1_deriv, np.dot(w1_1, delta_out_1))
+
+                ###### calculate change in weights needed and update weights
+                dW_in_1_1 = learningRate * (np.dot(delta_1_1, l0).T)
+                total_dW_in_1_1  += np.mean(dW_in_1_1)
+
+                dW_1_out_1 = learningRate * (np.dot(delta_out_1, z1_1).T)
+                total_dW_1_out_1 += np.mean(dW_1_out_1)
+                w0_1 += dW_in_1_1
+                w1_1 += dW_1_out_1
+                #end of 1 hidden layer
+
+            if(nn2_converged == False):
+                ############## TWO HIDDEN LAYER NEURAL NETWORK STRUCTURE
+                ###### feedforward
+                s1_2 = np.dot(l0, w0_2)
+                z1_2 = sigmoid(s1_2)
+                z1_2_deriv = sigmoid_derivative(z1_2).T
+                s2_2 = np.dot(z1_2, w1_2)
+                z2_2 = sigmoid(s2_2)
+                z2_2_deriv = sigmoid_derivative(z2_2).T
+                s3_2 = np.dot(z2_2, w2_2)
+                z3_2 = sigmoid(s3_2)
+                yHat_2 = z3_2
             
-            #print(str(totalError))
-            delta_out_1 = (yHat_1 - Y[j,:]).T
-            delta_1_1 = np.multiply(z1_1_deriv, np.dot(w1_1hl, delta_out_1))
+                ###### mean square error
+                totalError_2 += np.mean(np.sum(0.5 * (np.square(Y[j, : ] - yHat_2))))
 
-            #tempDW_1 = np.dot(delta_1, l0).T
-            deltaW_in_1_1 = learningRate * (np.dot(delta_1_1, l0).T)
-            total_dW_in_1_1  += np.mean(deltaW_in_1_1)
+                ###### back propagation
+                delta_out_2 = (yHat_2 - Y[j,:]).T
+                delta2_2 = np.multiply(z2_2_deriv, np.dot(w2_2, delta_out_2))
+                delta1_2 = np.multiply(z1_2_deriv, np.dot(w1_2, delta2_2))
 
-            deltaW_1_out_1 = learningRate * (np.dot(delta_out_1, z1_1).T)
-            total_dW_1_out_1 += np.mean(deltaW_1_out_1)
-            w0_1hl += deltaW_in_1_1
-            w1_1hl += deltaW_1_out_1
-            #end of 1 hidden layer
-
-            ##2 hidden layers:
-            #-----feed forward
-            s1_2 = np.dot(l0, w0)
-        
+                ###### calculate change in weights needed and update weights
+                dW_in_1_2 = learningRate * (np.dot(delta1_2, l0).T)
+                total_dW_in_1_2 += np.mean(dW_in_1_2)
+                dW_1_2_2 = learningRate * (np.dot(delta2_2, z1_2).T)
+                total_dW_1_2_2 += np.mean(dW_1_2_2)
+                dW_2_out_2 = learningRate * (np.dot(delta_out_2, z2_2).T)
+                total_dW_2_out_2 += np.mean(dW_2_out_2)
+                w0_2 += dW_in_1_2
+                w1_2 += dW_1_2_2
+                w2_2 += dW_2_out_2
+     
         total_dW_in_1_1 /=  float(samplesize)
         total_dW_1_out_1 /= float(samplesize)
         totalError_1 /= float(samplesize)
-        print("EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
-        if(totalError_1 < 0.06):
-            break
-        total_dW_in_1_1 = 0;
-        total_dW_1_out_1 = 0;
+        
+        total_dW_in_1_2 /= float(samplesize)
+        total_dW_1_2_2 /= float(samplesize)
+        total_dW_2_out_2 /= float(samplesize)
+        totalError_2 /= float(samplesize)
+
+        mse_1.write(str(totalError_1)+"\n")
+        diff_1.write(str(prevEpochError_1 - totalError_1)+"\n")
+        mse_2.write(str(totalError_2)+"\n")
+        diff_2.write(str(prevEpochError_2 - totalError_2)+"\n")
+
+        print("1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
+        print("2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
+        
+        if(abs(prevEpochError_1 - totalError_1) < 0.000001 and (nn1_converged == False)):
+            nn1_converged = True
+            miscInfo.write("[1HL]   converged at epoch "+str(i+1))
+            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - totalError_1))
+            
+        if(abs(prevEpochError_2 - totalError_2) < 0.000001 and (nn2_converged == False)):
+            nn2_converged = True
+            print(str(prevEpochError_2 - totalError_2))
+            miscInfo.write("[2HL]   converged at epoch "+str(i+1))
+            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - totalError_2))
+        
         
 
-    error_1.close()
-    error_2.close()
+        if(nn1_converged and nn2_converged):
+            #store weights after training network and include details about test in log file being kept
+            np.savetxt("Training/Tests/"+str(testNumber)+"/1_"+str(testNumber)+"_w0.txt", w0_1)
+            np.savetxt("Training/Tests/"+str(testNumber)+"/1_"+str(testNumber)+"_w1.txt", w1_1)
+            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w0.txt", w0_2)
+            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w1.txt", w1_2)
+            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w2.txt", w2_2)
+            
+            break
+
+    mse_1.close()
+    mse_2.close()
+    diff_1.close()
+    diff_2.close()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get test image from file and test input matrix
@@ -322,23 +421,23 @@ def getTestInputMatrix():
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #pass test case through neural network
 def TestNeuralNetwork(inputMatrix):
-    global w0
-    global w1
-    global w2
-    global w0_1hl
-    global w1_1hl
+    global w0_2
+    global w1_2
+    global w2_2
+    global w0_1
+    global w1_1
 
     resultMatrix_1hl = np.empty((len(inputMatrix), out_neurons))
     resultMatrix_2hl = np.empty((len(inputMatrix), out_neurons))
     for i in range(0, len(inputMatrix)):
         l0 = np.array(inputMatrix[i,], ndmin=2)
         np.reshape(l0, (1, in_neurons))
-        l1 = sigmoid(np.dot(l0, w0))
-        l2 = sigmoid(np.dot(l1, w1))
-        l3 = sigmoid(np.dot(l2, w2))
+        l1 = sigmoid(np.dot(l0, w0_2))
+        l2 = sigmoid(np.dot(l1, w1_2))
+        l3 = sigmoid(np.dot(l2, w2_2))
     
-        l1_1 = sigmoid(np.dot(l0, w0_1hl))
-        l2_1 = sigmoid(np.dot(l1_1, w1_1hl))
+        l1_1 = sigmoid(np.dot(l0, w0_1))
+        l2_1 = sigmoid(np.dot(l1_1, w1_1))
         
         resultMatrix_1hl[i, :] = l2_1
         resultMatrix_2hl[i, :] = l3
@@ -419,7 +518,7 @@ def getDrawnContourImage(gs_image, contour_image):
 
 
 trainingInputMatrix = getTrainingInputMatrix()
-#normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
+normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
 trainingOutputMatrix = getTrainingOutputMatrix()
 TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
 testInputMatrix = getTestInputMatrix()
@@ -432,8 +531,8 @@ outfile.write("\n".join(results_1hl))
 outfile.close()
 
 #For the two hidden layer neural network
-#results_2hl = processResults(finalProbabilities2hl)
-#outfile2 = open("results 2hl.txt", 'w')
-#outfile2.write("\n".join(results_2hl))
-#outfile2.close()
+results_2hl = processResults(finalProbabilities2hl)
+outfile2 = open("results 2hl.txt", 'w')
+outfile2.write("\n".join(results_2hl))
+outfile2.close()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
