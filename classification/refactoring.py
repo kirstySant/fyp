@@ -12,10 +12,9 @@ from pathlib import Path
 #global definitions
 in_neurons = 18
 out_neurons = 3
-samplesize = 251	#arbitrarily chosen
-learningRate = -0.0075 
+samplesize = 251	#number of images in training set
+
 testingContour = None
-contourTestImage = None
 grayscaleImagesList = None
 contourImagesList = None
 epochNumber = 10000
@@ -23,23 +22,17 @@ epochNumber = 10000
 
 #---------------------------------------------------------------------------
 #defining parameters for a single-hidden-layer neural network
-hl_neurons = 18
 w0_1 = np.zeros((in_neurons, hl_neurons))
 w1_1 = np.zeros((hl_neurons, out_neurons))
 #---------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------
 #defining parameters for a 2-hidden-layer neural network
-l1_neurons = 12
-l2_neurons = 6
 w0_2 = np.zeros((in_neurons, l1_neurons))
 w1_2 = np.zeros((l1_neurons, l2_neurons))
 w2_2 = np.zeros((l2_neurons, out_neurons))
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-testNumber = 1
-params = str(testNumber)+": learning rate = "+str(learningRate)+"; number of nodes in 1HL NN: "+str(hl_neurons)+"\n"
 
 #get grayscale features
 def getGrayscaleFeatures(image):
@@ -219,7 +212,7 @@ def sigmoid(x):
 def sigmoid_derivative(x):
 	return x * (1 - x) 
 
-def initialiseNeuralNetwork():
+def initialiseNeuralNetwork(hl_neurons, l1_neurons, l2_neurons):
     global w0_1
     global w1_1
     global w0_2
@@ -233,7 +226,7 @@ def initialiseNeuralNetwork():
     w0_1 = 2 * np.random.random((in_neurons, hl_neurons)) - 1
     w1_1 = 2 * np.random.random((hl_neurons, out_neurons)) - 1
 
-def TrainNeuralNetwork(inputMatrix, outputMatrix):
+def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_neurons, l2_neurons, trainCaseNumber):
 	
     X = inputMatrix
     Y = outputMatrix
@@ -244,22 +237,22 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
     global w1_1
     
     #create new path for new folder where everything will be stored
-    resultsFolder = "Training/Tests/"+str(testNumber)+"/"
+    resultsFolder = "Training/Tests/"+str(trainCaseNumber)+"/"
     os.makedirs(resultsFolder)
 
     #open file to add details re training
     testList = open("Training/Tests/testKey.txt", "a+")
-    testList.write(params)
+    testList.write(str(trainCaseNumber)+": learning rate = "+str(learningRate)+"; 1HL: "+str(hl_neurons)+"; 2HL-1: "+str(l1_neurons)+"; 2HL-1: "+str(l2_neurons)+"\n")
     testList.close()
     
     #text files storing MSE recorded for each NN
-    mse_1 = open("Training/Tests/"+str(testNumber)+"/1_MSE.txt", 'w') 
-    mse_2 = open("Training/Tests/"+str(testNumber)+"/2_MSE.txt", 'w')
-    diff_1 = open("Training/Tests/"+str(testNumber)+"/1_Difference.txt", 'w')
-    diff_2 = open("Training/Tests/"+str(testNumber)+"/2_Difference.txt", 'w')
-    miscInfo = open("Training/Tests/"+str(testNumber)+"/OtherValues.txt", 'w') 
+    mse_1 = open("Training/Tests/"+str(trainCaseNumber)+"/1_MSE.txt", 'w') 
+    mse_2 = open("Training/Tests/"+str(trainCaseNumber)+"/2_MSE.txt", 'w')
+    diff_1 = open("Training/Tests/"+str(trainCaseNumber)+"/1_Difference.txt", 'w')
+    diff_2 = open("Training/Tests/"+str(trainCaseNumber)+"/2_Difference.txt", 'w')
+    miscInfo = open("Training/Tests/"+str(trainCaseNumber)+"/OtherValues.txt", 'w') 
     i = 0
-    initialiseNeuralNetwork()
+    initialiseNeuralNetwork(hl_neurons, l1_neurons, l2_neurons)
     totalError_1 = 10.0
     totalError_2 = 10.0
 
@@ -360,26 +353,24 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
         print("1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
         print("2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
         
-        if(abs(prevEpochError_1 - totalError_1) < 0.000001 and (nn1_converged == False)):
+        if(abs(prevEpochError_1 - totalError_1) < 0.000000001 and (nn1_converged == False)):
             nn1_converged = True
             miscInfo.write("[1HL]   converged at epoch "+str(i+1))
             miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - totalError_1))
             
-        if(abs(prevEpochError_2 - totalError_2) < 0.000001 and (nn2_converged == False)):
+        if(abs(prevEpochError_2 - totalError_2) < 0.000000001 and (nn2_converged == False)):
             nn2_converged = True
             print(str(prevEpochError_2 - totalError_2))
             miscInfo.write("[2HL]   converged at epoch "+str(i+1))
             miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - totalError_2))
         
-        
-
         if(nn1_converged and nn2_converged):
             #store weights after training network and include details about test in log file being kept
-            np.savetxt("Training/Tests/"+str(testNumber)+"/1_"+str(testNumber)+"_w0.txt", w0_1)
-            np.savetxt("Training/Tests/"+str(testNumber)+"/1_"+str(testNumber)+"_w1.txt", w1_1)
-            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w0.txt", w0_2)
-            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w1.txt", w1_2)
-            np.savetxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w2.txt", w2_2)
+            np.savetxt("Training/Tests/"+str(trainCaseNumber)+"/1_"+str(trainCaseNumber)+"_w0.txt", w0_1)
+            np.savetxt("Training/Tests/"+str(trainCaseNumber)+"/1_"+str(trainCaseNumber)+"_w1.txt", w1_1)
+            np.savetxt("Training/Tests/"+str(trainCaseNumber)+"/2_"+str(trainCaseNumber)+"_w0.txt", w0_2)
+            np.savetxt("Training/Tests/"+str(trainCaseNumber)+"/2_"+str(trainCaseNumber)+"_w1.txt", w1_2)
+            np.savetxt("Training/Tests/"+str(trainCaseNumber)+"/2_"+str(trainCaseNumber)+"_w2.txt", w2_2)
             
             break
 
@@ -391,8 +382,7 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix):
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get test image from file and test input matrix
 def getTestInputMatrix():
-	#possible imprivement - get image to be tested  for using glob?
-    global contourTestImage
+	#possible imprivement - get image to be tested  for using glob? <--- done
     global grayscaleImagesList
     global contourImagesList
     pathname_contour_test = "Testing/contours/*.png" # refine path name!!!
@@ -420,15 +410,64 @@ def getTestInputMatrix():
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #pass test case through neural network
-def TestNeuralNetwork(inputMatrix):
-    global w0_2
-    global w1_2
-    global w2_2
-    global w0_1
-    global w1_1
+def TestOneHiddenLayerNetwork(inputMatrix, testSet):
+    resultMatrix = np.empty((len(inputMatrix), out_neurons))
+    #open directory corresponding to testSet parameter 
+    ##might not work
+    w0 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w0.txt", ndmin=2)
+    w1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w1.txt", ndmin=2)
+    #load weight matrces and store them in variables
+    #pass input matrix through network, one image at a time
+    for i in range(0, len(inputMatrix)):
+        l0 = np.array(inputMatrix[i,], ndmin=2)
+        np.reshape(l0, (1, in_neurons))
+    
+        l1_1 = sigmoid(np.dot(l0, w0))
+        l2_1 = sigmoid(np.dot(l1_1, w1))
+        
+        resultMatrix[i, :] = l2_1
+
+        print("[1HL] for image "+str(i+1))
+        print(l2_1)
+    
+    return resultMatrix
+
+def TestTwoHiddenLayerNetwork(inputMatrix, testSet):
+    resultMatrix = np.empty((len(inputMatrix), out_neurons))
+    #open directory corresponding to testSet parameter
+    ##might be wrong
+    w0 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w0.txt", ndmin=2)
+    w1 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w1.txt", ndmin=2)
+    w2 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w2.txt", ndmin=2)
+    
+    #load weight matrces and store them in variables
+    #pass input matrix through network, one image at a time
+    for i in range(0, len(inputMatrix)):
+        l0 = np.array(inputMatrix[i,], ndmin=2)
+        np.reshape(l0, (1, in_neurons))
+        l1 = sigmoid(np.dot(l0, w0))
+        l2 = sigmoid(np.dot(l1, w1))
+        l3 = sigmoid(np.dot(l2, w2))
+        
+        resultMatrix[i, :] = l3
+
+        print("[2HL]for image "+str(i+1))
+        print(l3)
+    
+    return resultMatrix
+
+def TestBothNeuralNetworks(inputMatrix, testSet):
+
+    w0_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w0.txt", ndmin=2)
+    w1_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w1.txt", ndmin=2)
+    w2_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w2.txt", ndmin=2)
+
+    w0_1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w0.txt", ndmin=2)
+    w1_1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w1.txt", ndmin=2)
 
     resultMatrix_1hl = np.empty((len(inputMatrix), out_neurons))
     resultMatrix_2hl = np.empty((len(inputMatrix), out_neurons))
+
     for i in range(0, len(inputMatrix)):
         l0 = np.array(inputMatrix[i,], ndmin=2)
         np.reshape(l0, (1, in_neurons))
@@ -517,22 +556,62 @@ def getDrawnContourImage(gs_image, contour_image):
     return drawing
 
 
-trainingInputMatrix = getTrainingInputMatrix()
-normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
-trainingOutputMatrix = getTrainingOutputMatrix()
-TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
-testInputMatrix = getTestInputMatrix()
-finalProbabilities1hl, finalProbabilities2hl = TestNeuralNetwork(testInputMatrix)
 
-#For the single hidden layer neural network
-results_1hl = processResults(finalProbabilities1hl)
-outfile = open("results 1hl.txt", 'w')
-outfile.write("\n".join(results_1hl))
-outfile.close()
+def main():
+    print("executing napier's work")
+    os.system("./main")
+    print("finished executing napier's work")
+    trainingInputMatrix = getTrainingInputMatrix()
+    normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
+    trainingOutputMatrix = getTrainingOutputMatrix()
+    TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
+    testInputMatrix = getTestInputMatrix()
+    finalProbabilities1hl, finalProbabilities2hl = TestBothNeuralNetworks(testInputMatrix)
 
-#For the two hidden layer neural network
-results_2hl = processResults(finalProbabilities2hl)
-outfile2 = open("results 2hl.txt", 'w')
-outfile2.write("\n".join(results_2hl))
-outfile2.close()
+    #For the single hidden layer neural network
+    results_1hl = processResults(finalProbabilities1hl)
+    outfile = open("results 1hl.txt", 'w')
+    outfile.write("\n".join(results_1hl))
+    outfile.close()
+
+    #For the two hidden layer neural network
+    results_2hl = processResults(finalProbabilities2hl)
+    outfile2 = open("results 2hl.txt", 'w')
+    outfile2.write("\n".join(results_2hl))
+    outfile2.close()
+
+def training():
+    trainingInputMatrix = getTrainingInputMatrix()
+    normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
+    trainingOutputMatrix = getTrainingOutputMatrix()
+
+    trainCaseNumber = 1
+    #varying learning rate from 0.005 to 0.05
+    for i in range(1, 11):
+        rate = 0.005 * i * -1
+        #varying the number of neurons from 4 to 26
+        for j in range(4, 26):
+            #for the 2HL network, if j is odd, layer1 has 1 more neuron than layer2
+            if(j % 2 == 1):
+                layer1_neurons = j // 2 + 1
+                layer2_neurons = j // 2
+            else:
+                layer1_neurons = j // 2
+                layer2_neurons = j // 2
+            
+            #make call for training
+            TrainNeuralNetwork(normalisedTrainingInputMatrix, trainingOutputMatrix, rate, j, layer1_neurons, layer2_neurons, trainCaseNumber)
+            #store details
+
+            #increment training case number
+        #rate = learningRate * i
+        
+    #while(neuronNumber < 26):
+    #    neuronNumber++
+
+if __name__ == "__main__":
+    #main()
+    training()
+    print ("finished execution.")
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+

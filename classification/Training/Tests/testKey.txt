@@ -1,1 +1,6 @@
-1: learning rate = -0.0075; number of nodes in 1HL NN: 18
+1: learning rate = -0.05; number of nodes in 1HL NN: 18
+2: learning rate = -0.5; number of nodes in 1HL NN: 18
+3: learning rate = -0.005; number of nodes in 1HL NN: 18
+4: learning rate = -0.005; number of nodes in 1HL NN: 18
+5: learning rate = -0.005; number of nodes in 1HL NN: 4
+6: learning rate = -0.005; number of nodes in 1HL NN: 4
