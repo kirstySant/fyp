@@ -466,11 +466,11 @@ void Haemorrhage_Detection()
     
     //saving grayscale and contour image
     stringstream ss2; //to hold image name;
-    string name2 = "ImagesforClassifier/gs_";//location to store the removed skull
+    string name2 = "/home/kirsty/Desktop/fyp/fyp/classification/Testing/grayscale/gs_";//location to store the removed skull
     string type2 = ".png";
 
     stringstream ss3; //to hold image name;
-    string name3 = "ImagesforClassifier/contour_";//location to store the removed skull
+    string name3 = "/home/kirsty/Desktop/fyp/fyp/classification/Testing/contour/c_";//location to store the removed skull
     string type3 = ".png";
     
     for(size_t j = 0; j < filenames.size(); ++j)//looping thriugh all the files
@@ -717,11 +717,11 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     
     color = Scalar(100,0,254 );//pink contour colour
     cv::cvtColor(drawing,drawing,CV_GRAY2BGR); //conversion to colour to show pink contour
-    drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() );
+    //drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() );
     if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 1000/*3055*/) && maxArea2 < 15000) && (perimeter < 2000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
     {
     	drawnContour = 1;
-    	cout <<"!!CONTOUR DRAWN"<<endl;
+    	//cout <<"!!CONTOUR DRAWN"<<endl;
         drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() ); //if conditions are satisfied, draw the contour
         false_Positive_Count += 1;
         ////////////

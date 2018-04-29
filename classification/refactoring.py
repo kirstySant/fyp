@@ -13,7 +13,7 @@ from pathlib import Path
 in_neurons = 18
 out_neurons = 3
 samplesize = 251	#number of images in training set
-
+    
 testingContour = None
 grayscaleImagesList = None
 contourImagesList = None
@@ -22,15 +22,15 @@ epochNumber = 10000
 
 #---------------------------------------------------------------------------
 #defining parameters for a single-hidden-layer neural network
-w0_1 = np.zeros((in_neurons, hl_neurons))
-w1_1 = np.zeros((hl_neurons, out_neurons))
+w0_1 = None#np.zeros((in_neurons, hl_neurons))
+w1_1 = None#np.zeros((hl_neurons, out_neurons))
 #---------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------
 #defining parameters for a 2-hidden-layer neural network
-w0_2 = np.zeros((in_neurons, l1_neurons))
-w1_2 = np.zeros((l1_neurons, l2_neurons))
-w2_2 = np.zeros((l2_neurons, out_neurons))
+w0_2 = None#np.zeros((in_neurons, l1_neurons))
+w1_2 = None#np.zeros((l1_neurons, l2_neurons))
+w2_2 = None#np.zeros((l2_neurons, out_neurons))
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -242,7 +242,7 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
 
     #open file to add details re training
     testList = open("Training/Tests/testKey.txt", "a+")
-    testList.write(str(trainCaseNumber)+": learning rate = "+str(learningRate)+"; 1HL: "+str(hl_neurons)+"; 2HL-1: "+str(l1_neurons)+"; 2HL-1: "+str(l2_neurons)+"\n")
+    testList.write(str(trainCaseNumber)+": learning rate = "+str(learningRate)+"; 1HL: "+str(hl_neurons)+"; 2HL-1: "+str(l1_neurons)+"; 2HL-2: "+str(l2_neurons)+"\n")
     testList.close()
     
     #text files storing MSE recorded for each NN
@@ -350,19 +350,19 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
         mse_2.write(str(totalError_2)+"\n")
         diff_2.write(str(prevEpochError_2 - totalError_2)+"\n")
 
-        print("1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
-        print("2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
+        print(str(trainCaseNumber)+"1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
+        print(str(trainCaseNumber)+"2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
         
-        if(abs(prevEpochError_1 - totalError_1) < 0.000000001 and (nn1_converged == False)):
+        if(abs(prevEpochError_1 - totalError_1) < 0.000001 and (nn1_converged == False)):
             nn1_converged = True
-            miscInfo.write("[1HL]   converged at epoch "+str(i+1))
-            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - totalError_1))
+            miscInfo.write("[1HL]   converged at epoch "+str(i+1)+"\n")
+            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - totalError_1)+"\n")
             
-        if(abs(prevEpochError_2 - totalError_2) < 0.000000001 and (nn2_converged == False)):
+        if(abs(prevEpochError_2 - totalError_2) < 0.000001 and (nn2_converged == False)):
             nn2_converged = True
             print(str(prevEpochError_2 - totalError_2))
-            miscInfo.write("[2HL]   converged at epoch "+str(i+1))
-            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - totalError_2))
+            miscInfo.write("[2HL]   converged at epoch "+str(i+1)+"\n")
+            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - totalError_2)+"\n")
         
         if(nn1_converged and nn2_converged):
             #store weights after training network and include details about test in log file being kept
@@ -601,13 +601,8 @@ def training():
             
             #make call for training
             TrainNeuralNetwork(normalisedTrainingInputMatrix, trainingOutputMatrix, rate, j, layer1_neurons, layer2_neurons, trainCaseNumber)
-            #store details
-
-            #increment training case number
-        #rate = learningRate * i
+            trainCaseNumber += 1
         
-    #while(neuronNumber < 26):
-    #    neuronNumber++
 
 if __name__ == "__main__":
     #main()
