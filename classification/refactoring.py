@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 import skimage.feature as skimg
 import skimage.measure as skm
@@ -345,10 +346,12 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
         total_dW_2_out_2 /= float(samplesize)
         totalError_2 /= float(samplesize)
 
-        mse_1.write(str(totalError_1)+"\n")
-        diff_1.write(str(prevEpochError_1 - totalError_1)+"\n")
-        mse_2.write(str(totalError_2)+"\n")
-        diff_2.write(str(prevEpochError_2 - totalError_2)+"\n")
+        if(nn1_converged == False):
+            mse_1.write(str(totalError_1)+"\n")
+            diff_1.write(str(prevEpochError_1 - totalError_1)+"\n")
+        if(nn2_converged == False):
+            mse_2.write(str(totalError_2)+"\n")
+            diff_2.write(str(prevEpochError_2 - totalError_2)+"\n")
 
         print(str(trainCaseNumber)+"1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
         print(str(trainCaseNumber)+"2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
