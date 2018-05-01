@@ -1,23 +1,18 @@
-Case 1: ICH - 63.0814% confident
-Case 2: ICH - 63.0814% confident
-Case 3: ICH - 63.0814% confident
-Case 4: ICH - 63.0814% confident
-Case 5: ICH - 63.0814% confident
-Case 6: ICH - 63.0814% confident
-Case 7: ICH - 63.0814% confident
-Case 8: ICH - 63.0814% confident
-Case 9: ICH - 63.0814% confident
-Case 10: ICH - 63.0814% confident
-Case 11: ICH - 63.0814% confident
-Case 12: ICH - 63.0814% confident
-Case 13: ICH - 63.0814% confident
-Case 14: ICH - 63.0814% confident
-Case 15: ICH - 63.0814% confident
-Case 16: ICH - 63.0814% confident
-Case 17: ICH - 63.0814% confident
-Case 18: ICH - 63.0814% confident
-Case 19: ICH - 63.0814% confident
-Case 20: ICH - 63.0814% confident
-Case 21: ICH - 63.0814% confident
-Case 22: ICH - 63.0814% confident
-Case 23: ICH - 63.0814% confident
+Case 1: SDH - 99.9498% confident
+Case 2: SDH - 88.6958% confident
+Case 3: ICH - 99.8297% confident
+Case 4: ICH - 99.8297% confident
+Case 5: ICH - 99.8297% confident
+Case 6: ICH - 99.7930% confident
+Case 7: ICH - 99.7930% confident
+Case 8: ICH - 99.7930% confident
+Case 9: ICH - 99.7930% confident
+Case 10: ICH - 99.8297% confident
+Case 11: ICH - 99.7930% confident
+Case 12: ICH - 99.8297% confident
+Case 13: ICH - 99.8297% confident
+**************************************
+
+
+Final result for case set: ICH with 0.8533650677905628% confidence
+**************************************

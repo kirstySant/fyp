@@ -84,12 +84,12 @@ int main(int argc, const char * argv[]) {
 void Filtering()
 {
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "Testing/new_bleed4Contrast"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/new_bleed4Contrast"; // again we are using the Opencv's embedded "String" class
     
     glob(folder, filenames);
     stringstream ss; //to hold image name;
     
-    string name = "Testing/testBilateral/bilateral_";
+    string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/testBilateral/bilateral_";
     string type = ".png";
     int ct = 0;
     
@@ -134,10 +134,10 @@ void Filtering()
 void Skull_Stripping()
 {
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "Testing/testBilateral"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Testing/testBilateral"; // again we are using the Opencv's embedded "String" class
     
     vector<String> filenames2; // notice here that we are using the Opencv's embedded "String" class
-    String folder2 = "SegmentedTissue"; // again we are using the Opencv's embedded "String" class
+    String folder2 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedTissue"; // again we are using the Opencv's embedded "String" class
     
     glob(folder, filenames);
     glob(folder2, filenames2);
@@ -150,10 +150,10 @@ void Skull_Stripping()
     
     
     
-    string name = "InitalTrheshold/threshold_";//location to store the removed skull
-    string name2 = "SegmentedSkull/SegmentedSkull_";//loacation to store the final image
-    string name3 = "RemovedTissue/RemovedTissue_";//location to store the removed tissue
-    string name4 = "SegmentedTissue/SegmentedTissue_"; //location to store the segmented head
+    string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/InitalTrheshold/threshold_";//location to store the removed skull
+    string name2 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedSkull/SegmentedSkull_";//loacation to store the final image
+    string name3 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/RemovedTissue/RemovedTissue_";//location to store the removed tissue
+    string name4 = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedTissue/SegmentedTissue_"; //location to store the segmented head
     string type = ".jpg";
     int ct = 0; //image counters
     int ct2 = 0;
@@ -457,10 +457,10 @@ int findLargestDensity(vector< vector<Point> > contours) //Used to find contour 
 void Haemorrhage_Detection()
 {
     vector<String> filenames; // notice here that we are using the Opencv's embedded "String" class
-    String folder = "SegmentedSkull"; // again we are using the Opencv's embedded "String" class
+    String folder = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/SegmentedSkull"; // again we are using the Opencv's embedded "String" class
     glob(folder, filenames);
     stringstream ss; //to hold image name;
-    string name = "Haemorrhage/haemorrhage_";//location to store the removed skull
+    string name = "/home/kirsty/Desktop/fyp/fyp/JOHN NAPIER FYP/Haemorrhage/haemorrhage_";//location to store the removed skull
     string type = ".png";
     int ct = 0; //image counters
     
@@ -575,7 +575,7 @@ void Haemorrhage_Detection()
             imshow("result", gray);
             imwrite(filename, result); // saving image
             
-            // waitKey(0);
+            //waitKey(0);
 
             //check if the contour was drawn, if true then save images to folder
             if(drawnContour == 1){
@@ -718,10 +718,10 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     color = Scalar(100,0,254 );//pink contour colour
     cv::cvtColor(drawing,drawing,CV_GRAY2BGR); //conversion to colour to show pink contour
     //drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() );
-    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 1000/*3055*/) && maxArea2 < 15000) && (perimeter < 2000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
+    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 1000 /*3055*/) && maxArea2 < 15000) && (perimeter < 1000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
     {
     	drawnContour = 1;
-    	//cout <<"!!CONTOUR DRAWN"<<endl;
+    	cout <<"!!CONTOUR DRAWN"<<endl;
         drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() ); //if conditions are satisfied, draw the contour
         false_Positive_Count += 1;
         ////////////
@@ -740,7 +740,7 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     /// Show in a window
     namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
     imshow( "Contours", drawing );
-    waitKey(0);
+    //waitKey(0);
     return drawing;
 }
 

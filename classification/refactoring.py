@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 import skimage.feature as skimg
 import skimage.measure as skm
@@ -388,7 +387,7 @@ def getTestInputMatrix():
 	#possible imprivement - get image to be tested  for using glob? <--- done
     global grayscaleImagesList
     global contourImagesList
-    pathname_contour_test = "Testing/contours/*.png" # refine path name!!!
+    pathname_contour_test = "Testing/contour/*.png" # refine path name!!!
     filenames_contour_test = sorted(glob.glob(pathname_contour_test))
     pathname_grayscale_test = "Testing/grayscale/*.png" # refine path name!!!
     filenames_grayscale_test = sorted(glob.glob(pathname_grayscale_test))
@@ -461,9 +460,9 @@ def TestTwoHiddenLayerNetwork(inputMatrix, testSet):
 
 def TestBothNeuralNetworks(inputMatrix, testSet):
 
-    w0_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w0.txt", ndmin=2)
-    w1_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w1.txt", ndmin=2)
-    w2_2 = np.loadtxt("Training/Tests/"+str(testNumber)+"/2_"+str(testNumber)+"_w2.txt", ndmin=2)
+    w0_2 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w0.txt", ndmin=2)
+    w1_2 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w1.txt", ndmin=2)
+    w2_2 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w2.txt", ndmin=2)
 
     w0_1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w0.txt", ndmin=2)
     w1_1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w1.txt", ndmin=2)
@@ -484,9 +483,9 @@ def TestBothNeuralNetworks(inputMatrix, testSet):
         resultMatrix_1hl[i, :] = l2_1
         resultMatrix_2hl[i, :] = l3
 
-        print("for image "+str(i))
-        print(l2_1)
-        print(l3)
+        #print("for image "+str(i))
+        #print(l2_1)
+        #print(l3)
     
     return resultMatrix_1hl, resultMatrix_2hl
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -495,10 +494,14 @@ def TestBothNeuralNetworks(inputMatrix, testSet):
 def processResults(resultMatrix):
     global grayscaleImagesList
     global contourImagesList
-    percentages = np.multiply(resultMatrix, 100)
+    percentages = np.multiply(resultMatrix, 100.0)
     results = []
     inferredResults = np.zeros((len(resultMatrix), out_neurons))
+    
+    maxProbability_col = 0
+    maxProbIndex = -1
     for i in range (0, len(resultMatrix)):
+        
         maxProbability = 0
         maxProbabilityIndex = -1
         index = 0
@@ -508,35 +511,71 @@ def processResults(resultMatrix):
                 maxProbabilityIndex = index
             index += 1
         inferredResults[i, maxProbabilityIndex] = 1
-
+        
         resultString = ""
         if(inferredResults[i, 0] == 1):
             confidence = format(percentages[i, 0], '.4f')
-            resultString = "Case "+str(i + 1)+": EDH - "+ confidence +"% confident"
+            if(confidence > maxProbability_col):
+                maxProbability_col = confidence
+                maxProbIndex = i
+                
+            resultString = "Image "+str(i + 1)+": EDH - "+ confidence +"% confident"
         if(inferredResults[i, 1] == 1):
             confidence = format(percentages[i, 1], '.4f')
-            resultString = "Case "+str(i + 1)+": SDH - "+ confidence +"% confident"
+            if(confidence > maxProbability_col):
+                maxProbability_col = confidence
+                maxProbIndex = i
+            resultString = "Image "+str(i + 1)+": SDH - "+ confidence +"% confident"
         if(inferredResults[i, 2] == 1):
             confidence = format(percentages[i, 2], '.4f')
-            resultString = "Case "+str(i + 1)+": ICH - "+ confidence +"% confident"
+            if(confidence > maxProbability_col):
+                maxProbability_col = confidence
+                maxProbIndex = i
+            resultString = "Image "+str(i + 1)+": ICH - "+ confidence +"% confident"
         
         results.append(resultString)
-        currentImagePath_gs = grayscaleImagesList[i]
-        currentImage_gs = cv2.imread(currentImagePath_gs, cv2.IMREAD_GRAYSCALE)
+        
 
-        currentImagePath_contour = contourImagesList[i]
-        currentImage_contour = cv2.imread(currentImagePath_contour, cv2.IMREAD_GRAYSCALE)
+    results.append("**************************************")
 
-        resultImage = getDrawnContourImage(currentImage_gs, currentImage_contour)
-
-        cv2.putText(resultImage, resultString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), True)
-        windowName = "Final Result for case "+str(i+1)
-        cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
-        cv2.imshow(windowName, resultImage)
-        cv2.waitKey()
-        cv2.destroyWindow(windowName)
     
-    return results
+    print("#######")
+    totalPercentages = np.mean(percentages, axis=0)
+    print(totalPercentages)
+    print("#######")
+    maxPercentageIndex = np.argmax(totalPercentages)
+    maxPercentage = totalPercentages[maxPercentageIndex]
+    if(maxPercentageIndex == 0):
+        finalString = "Final result for case set: EDH with "+str(maxPercentage)+"% confidence"
+        print(finalString)
+        imageString = "EDH: "+str(format(maxPercentage, '.4f'))+"% confident"
+    if(maxPercentageIndex == 1):
+        finalString = "Final result for case set: SDH with "+str(maxPercentage)+"% confidence"
+        imageString = "SDH: "+str(format(maxPercentage, '.4f'))+"% confident"
+        print(finalString)
+    if(maxPercentageIndex == 2):
+        finalString = "Final result for case set: ICH with "+str(maxPercentage)+"% confidence"
+        imageString = "ICH: "+str(format(maxPercentage, '.4f'))+"% confident"
+        print(finalString)
+    
+    results.append(finalString)
+    results.append("**************************************")
+    
+    currentImagePath_gs = grayscaleImagesList[maxProbIndex]
+    currentImage_gs = cv2.imread(currentImagePath_gs, cv2.IMREAD_GRAYSCALE)
+
+    currentImagePath_contour = contourImagesList[maxProbIndex]
+    currentImage_contour = cv2.imread(currentImagePath_contour, cv2.IMREAD_GRAYSCALE)
+    resultImage = getDrawnContourImage(currentImage_gs, currentImage_contour)
+
+    cv2.putText(resultImage, imageString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), True)
+    windowName = "Final Result for image "+str(i+1)
+    cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
+    cv2.imshow(windowName, resultImage)
+    cv2.waitKey()
+    cv2.destroyWindow(windowName)
+    
+    return results, totalPercentages, resultImage
 
 def getDrawnContourImage(gs_image, contour_image):
     #original = np.copy(image)
@@ -560,28 +599,38 @@ def getDrawnContourImage(gs_image, contour_image):
 
 
 
-def main():
-    print("executing napier's work")
-    os.system("./main")
-    print("finished executing napier's work")
-    trainingInputMatrix = getTrainingInputMatrix()
-    normalisedTrainingInputMatrix = normaliseMatrix(trainingInputMatrix)
-    trainingOutputMatrix = getTrainingOutputMatrix()
-    TrainNeuralNetwork(trainingInputMatrix, trainingOutputMatrix)
+def Testing():
+    print("Detecting Haemorrhage . . . ")
+    os.system("./main2")
+    print("Haemorrhage Detection Finished")
     testInputMatrix = getTestInputMatrix()
-    finalProbabilities1hl, finalProbabilities2hl = TestBothNeuralNetworks(testInputMatrix)
+    totalTests = 220
+    for i in range(1, totalTests + 1):
+        resultsFolder = "Testing/TestResults/"+str(i)+"/"
+        os.makedirs(resultsFolder)
+        finalProbabilities1hl, finalProbabilities2hl = TestBothNeuralNetworks(testInputMatrix, i)
+        
+        #For the single hidden layer neural network
+        results_1hl, percentages_1hl, image_1 = processResults(finalProbabilities1hl)
+        outfile = open("Testing/TestResults/"+str(i)+"/"+str(i)+"results 1hl.txt", 'w')
+        outfile.write("\n".join(results_1hl))
+        outfile.close()
+        cv2.imwrite("Testing/TestResults/ResultImages/Test1/1hl_"+str(i)+".png", image_1)
+        
+        testList = open("Testing/TestResults/averagePercentage_1.txt", "a+")
+        testList.write(str(i)+"\t"+str(percentages_1hl[0]).replace('[','').replace(']','')+"\t"+str(percentages_1hl[1]).replace('[','').replace(']','')+"\t"+str(percentages_1hl[2]).replace('[','').replace(']','')+"\n")
+        testList.close()
 
-    #For the single hidden layer neural network
-    results_1hl = processResults(finalProbabilities1hl)
-    outfile = open("results 1hl.txt", 'w')
-    outfile.write("\n".join(results_1hl))
-    outfile.close()
+        #For the two hidden layer neural network
+        results_2hl, percentages_2hl, image_2 = processResults(finalProbabilities2hl)
+        outfile2 = open("Testing/TestResults/"+str(i)+"/"+str(i)+"results 2hl.txt", 'w')
+        outfile2.write("\n".join(results_2hl))
+        outfile2.close()
+        cv2.imwrite("Testing/TestResults/ResultImages/Test1/2hl_"+str(i)+".png", image_2)
 
-    #For the two hidden layer neural network
-    results_2hl = processResults(finalProbabilities2hl)
-    outfile2 = open("results 2hl.txt", 'w')
-    outfile2.write("\n".join(results_2hl))
-    outfile2.close()
+        testList2 = open("Testing/TestResults/averagePercentage_2.txt", "a+")
+        testList2.write(str(i)+"\t"+str(percentages_2hl[0]).replace('[','').replace(']','')+"\t"+str(percentages_2hl[1]).replace('[','').replace(']','')+"\t"+str(percentages_2hl[2]).replace('[','').replace(']','')+"\n")
+        testList2.close()
 
 def training():
     trainingInputMatrix = getTrainingInputMatrix()
@@ -609,7 +658,9 @@ def training():
 
 if __name__ == "__main__":
     #main()
-    training()
+    #training()
+
+    Testing()
     print ("finished execution.")
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
