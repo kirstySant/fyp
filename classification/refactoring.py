@@ -250,27 +250,29 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
     mse_2 = open("Training/Tests/"+str(trainCaseNumber)+"/2_MSE.txt", 'w')
     diff_1 = open("Training/Tests/"+str(trainCaseNumber)+"/1_Difference.txt", 'w')
     diff_2 = open("Training/Tests/"+str(trainCaseNumber)+"/2_Difference.txt", 'w')
-    miscInfo = open("Training/Tests/"+str(trainCaseNumber)+"/OtherValues.txt", 'w') 
+    miscInfo = open("Training/Tests/"+str(trainCaseNumber)+"/OtherValues.txt", 'w')
+    error_1 = open("Training/Tests/"+str(trainCaseNumber)+"/error1.txt", 'w')
+    error_2 = open("Training/Tests/"+str(trainCaseNumber)+"/error1.txt", 'w')
     i = 0
     initialiseNeuralNetwork(hl_neurons, l1_neurons, l2_neurons)
-    totalError_1 = 10.0
-    totalError_2 = 10.0
+    error1 = 10.0
+    error2 = 10.0
 
     nn1_converged = False
     nn2_converged = False
     #while (totalMeanError_1hl > 0.00005) and (totalMeanError_2hl > 0.00005) :
 
     for i in range(0, epochNumber):
-        prevEpochError_1 = totalError_1
-        prevEpochError_2 = totalError_2
+        prevEpochError_1 = error1
+        prevEpochError_2 = error2
         total_dW_in_1_1 = 0
         total_dW_1_out_1 = 0
-        totalError_1 = 0
+        error1 = 0
 
         total_dW_in_1_2 = 0
         total_dW_1_2_2 = 0
         total_dW_2_out_2 = 0
-        totalError_2 = 0
+        error2 = 0
 
         for j in range (0, samplesize):
             l0 = np.array(X[j,], ndmin=2)
@@ -287,13 +289,14 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
                 yHat_1 = z2_1   #computed output
 
                 ###### mean square error
-                totalError_1 += np.mean(np.sum(0.5 * (np.square(Y[j, : ] - yHat_1)))) #<-- total error of neural network
+                mseTotal_1 += np.mean((np.square(Y[j, : ] - yHat_1))) #<-- total error of neural network
                 #print(str(totalError))
 
                 ###### back propagation
                 delta_out_1 = (yHat_1 - Y[j,:]).T
                 delta_1_1 = np.multiply(z1_1_deriv, np.dot(w1_1, delta_out_1))
-
+                
+                error1 += (np.mean(delta_out_1) + np.mean(delta_1_1)) / 2.0
                 ###### calculate change in weights needed and update weights
                 dW_in_1_1 = learningRate * (np.dot(delta_1_1, l0).T)
                 total_dW_in_1_1  += np.mean(dW_in_1_1)
@@ -318,12 +321,14 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
                 yHat_2 = z3_2
             
                 ###### mean square error
-                totalError_2 += np.mean(np.sum(0.5 * (np.square(Y[j, : ] - yHat_2))))
+                mseTotal_2 += np.mean((np.square(Y[j, : ] - yHat_2)))
 
                 ###### back propagation
                 delta_out_2 = (yHat_2 - Y[j,:]).T
                 delta2_2 = np.multiply(z2_2_deriv, np.dot(w2_2, delta_out_2))
                 delta1_2 = np.multiply(z1_2_deriv, np.dot(w1_2, delta2_2))
+
+                error2 += (np.mean(delta_out_2) + np.mean(delta2_2) + np.mean(delta1_2)) / 3.0
 
                 ###### calculate change in weights needed and update weights
                 dW_in_1_2 = learningRate * (np.dot(delta1_2, l0).T)
@@ -338,33 +343,37 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
      
         total_dW_in_1_1 /=  float(samplesize)
         total_dW_1_out_1 /= float(samplesize)
-        totalError_1 /= float(samplesize)
-        
+        mseTotal_1 /= float(samplesize)
+        error1 /= float(samplesize)
         total_dW_in_1_2 /= float(samplesize)
         total_dW_1_2_2 /= float(samplesize)
         total_dW_2_out_2 /= float(samplesize)
-        totalError_2 /= float(samplesize)
+        mseTotal_2 /= float(samplesize)
+        error2 /= float(samplesize)
 
         if(nn1_converged == False):
-            mse_1.write(str(totalError_1)+"\n")
-            diff_1.write(str(prevEpochError_1 - totalError_1)+"\n")
+            mse_1.write(str(mseTotal_1)+"\n")
+            diff_1.write(str(prevEpochError_1 - mseTotal_1)+"\n")
+            error_1.write(str(error1)+"\n")
         if(nn2_converged == False):
-            mse_2.write(str(totalError_2)+"\n")
-            diff_2.write(str(prevEpochError_2 - totalError_2)+"\n")
+            mse_2.write(str(mseTotal_2)+"\n")
+            diff_2.write(str(prevEpochError_2 - mseTotal_2)+"\n")
+            error_2.write(str(error2)+"\n")
 
-        print(str(trainCaseNumber)+"1HL: EPOCH "+str(i)+": "+str(totalError_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
-        print(str(trainCaseNumber)+"2HL: EPOCH "+str(i)+": "+str(totalError_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
+        print(str(trainCaseNumber)+"1HL: EPOCH "+str(i)+": "+str(mseTotal_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
+        print(str(trainCaseNumber)+"2HL: EPOCH "+str(i)+": "+str(mseTotal_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
         
-        if(abs(prevEpochError_1 - totalError_1) < 0.000001 and (nn1_converged == False)):
+        if(abs(prevEpochError_1 - error1) < 0.000001 and (nn1_converged == False)):
             nn1_converged = True
+            print(str(prevEpochError_1 - error1))
             miscInfo.write("[1HL]   converged at epoch "+str(i+1)+"\n")
-            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - totalError_1)+"\n")
+            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - error1)+"\n")
             
-        if(abs(prevEpochError_2 - totalError_2) < 0.000001 and (nn2_converged == False)):
+        if(abs(prevEpochError_2 - error2) < 0.000001 and (nn2_converged == False)):
             nn2_converged = True
-            print(str(prevEpochError_2 - totalError_2))
+            print(str(prevEpochError_2 - error2))
             miscInfo.write("[2HL]   converged at epoch "+str(i+1)+"\n")
-            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - totalError_2)+"\n")
+            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - error2)+"\n")
         
         if(nn1_converged and nn2_converged):
             #store weights after training network and include details about test in log file being kept
@@ -380,6 +389,8 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
     mse_2.close()
     diff_1.close()
     diff_2.close()
+    error_1.close()
+    error_2.close()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #get test image from file and test input matrix
@@ -566,9 +577,10 @@ def processResults(resultMatrix):
 
     currentImagePath_contour = contourImagesList[maxProbIndex]
     currentImage_contour = cv2.imread(currentImagePath_contour, cv2.IMREAD_GRAYSCALE)
+    
     resultImage = getDrawnContourImage(currentImage_gs, currentImage_contour)
 
-    cv2.putText(resultImage, imageString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), True)
+    cv2.putText(resultImage, imageString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,255,255), True)
     windowName = "Final Result for image "+str(i+1)
     cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
     cv2.imshow(windowName, resultImage)
@@ -593,7 +605,7 @@ def getDrawnContourImage(gs_image, contour_image):
 
     #im in following line needs to be the grayscale image
     drawing = cv2.cvtColor(gs_image, cv2.COLOR_GRAY2BGR)
-    cv2.drawContours(drawing, contours, maxAreaLoc, (0,255,0), 5)
+    cv2.drawContours(drawing, contours, maxAreaLoc, (0,255,0), 3)
 
     return drawing
 
