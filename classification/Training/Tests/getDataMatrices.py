@@ -10,6 +10,7 @@ minmse1 = open("minmse1.txt", "w+")
 minmse2 = open("minmse2.txt", "w+")
 maxmse1 = open("maxmse1.txt", "w+")
 maxmse2 = open("maxmse2.txt", "w+")
+
 for i in range(1, 221):
     fname = str(i)+"/1_Difference.txt"
     diff_1hl = np.loadtxt(fname, ndmin=2)

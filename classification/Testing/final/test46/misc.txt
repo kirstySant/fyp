@@ -1,0 +1,2 @@
+execution time to get results for 1 testing case: 5.083939 seconds
+

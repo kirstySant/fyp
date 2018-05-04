@@ -1,4 +1,6 @@
-execution time to get all training matrices to converge: 1502.038118 seconds
+execution time to get all training matrices to converge: 3488.862259 seconds
+
+
 1: learning rate = -0.005; 1HL: 4; 2HL-1: 2; 2HL-2: 2
 2: learning rate = -0.005; 1HL: 5; 2HL-1: 3; 2HL-2: 2
 3: learning rate = -0.005; 1HL: 6; 2HL-1: 3; 2HL-2: 3

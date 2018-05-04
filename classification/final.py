@@ -259,14 +259,14 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
     initialiseNeuralNetwork(hl_neurons, l1_neurons, l2_neurons)
     error1 = 10.0
     error2 = 10.0
-    mseTotal_1 = 0
-    mseTotal_2 = 0      
+    mseTotal_1 = 10
+    mseTotal_2 = 10      
     nn1_converged = False
     nn2_converged = False
 
     for i in range(0, epochNumber):
-        prevEpochError_1 = error1
-        prevEpochError_2 = error2
+        prevEpochError_1 = mseTotal_1
+        prevEpochError_2 = mseTotal_2
         total_dW_in_1_1 = 0
         total_dW_1_out_1 = 0
         error1 = 0
@@ -365,17 +365,17 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
         print(str(trainCaseNumber)+" - 1HL: EPOCH "+str(i)+": "+str(error1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
         print(str(trainCaseNumber)+" - 2HL: EPOCH "+str(i)+": "+str(error2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
         
-        if(abs(prevEpochError_1 - error1) < 0.000001 and (nn1_converged == False)):
+        if(abs(prevEpochError_1 - mseTotal_1) < 0.000001 and (nn1_converged == False)):
             nn1_converged = True
-            print(str(prevEpochError_1 - error1))
+            print(str(prevEpochError_1 - mseTotal_1))
             miscInfo.write("[1HL]   converged at epoch "+str(i+1)+"\n")
-            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - error1)+"\n")
+            miscInfo.write("[1HL]   final difference: "+str(prevEpochError_1 - mseTotal_1)+"\n")
             
-        if(abs(prevEpochError_2 - error2) < 0.000001 and (nn2_converged == False)):
+        if(abs(prevEpochError_2 - mseTotal_2) < 0.000001 and (nn2_converged == False)):
             nn2_converged = True
-            print(str(prevEpochError_2 - error2))
+            print(str(prevEpochError_2 - mseTotal_2))
             miscInfo.write("[2HL]   converged at epoch "+str(i+1)+"\n")
-            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - error2)+"\n")
+            miscInfo.write("[2HL]   final difference: "+str(prevEpochError_2 - mseTotal_2)+"\n")
         
         if(nn1_converged and nn2_converged):
             #store weights after training network and include details about test in log file being kept
@@ -681,6 +681,7 @@ if __name__ == "__main__":
     endTesting = time.clock()
     testingTime = endTesting - startTesting
     print("execution time to get results for 1 testing case: "+str(testingTime)+" seconds")
+    print("case 01")
     #Testing()
     print ("finished execution.")
     
