@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import glob
 import os
+import time
 
 from scipy.stats import kurtosis, skew
 from pathlib import Path
@@ -244,6 +245,7 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
     testList = open("Training/Tests/testKey.txt", "a+")
     testList.write(str(trainCaseNumber)+": learning rate = "+str(learningRate)+"; 1HL: "+str(hl_neurons)+"; 2HL-1: "+str(l1_neurons)+"; 2HL-2: "+str(l2_neurons)+"\n")
     testList.close()
+
     
     #text files storing MSE recorded for each NN
     mse_1 = open("Training/Tests/"+str(trainCaseNumber)+"/1_MSE.txt", 'w') 
@@ -252,12 +254,13 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
     diff_2 = open("Training/Tests/"+str(trainCaseNumber)+"/2_Difference.txt", 'w')
     miscInfo = open("Training/Tests/"+str(trainCaseNumber)+"/OtherValues.txt", 'w')
     error_1 = open("Training/Tests/"+str(trainCaseNumber)+"/error1.txt", 'w')
-    error_2 = open("Training/Tests/"+str(trainCaseNumber)+"/error1.txt", 'w')
+    error_2 = open("Training/Tests/"+str(trainCaseNumber)+"/error2.txt", 'w')
     i = 0
     initialiseNeuralNetwork(hl_neurons, l1_neurons, l2_neurons)
     error1 = 10.0
     error2 = 10.0
-
+    mseTotal_1 = 0
+    mseTotal_2 = 0      
     nn1_converged = False
     nn2_converged = False
     #while (totalMeanError_1hl > 0.00005) and (totalMeanError_2hl > 0.00005) :
@@ -360,8 +363,8 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
             diff_2.write(str(prevEpochError_2 - mseTotal_2)+"\n")
             error_2.write(str(error2)+"\n")
 
-        print(str(trainCaseNumber)+"1HL: EPOCH "+str(i)+": "+str(mseTotal_1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
-        print(str(trainCaseNumber)+"2HL: EPOCH "+str(i)+": "+str(mseTotal_2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
+        print(str(trainCaseNumber)+" - 1HL: EPOCH "+str(i)+": "+str(error1)+"|||"+str(float(total_dW_in_1_1))+"|"+str(float(total_dW_1_out_1)))
+        print(str(trainCaseNumber)+" - 2HL: EPOCH "+str(i)+": "+str(error2)+"|||"+str(float(total_dW_in_1_2))+"|"+str(float(total_dW_1_2_2))+"|"+str(float(total_dW_2_out_2)))
         
         if(abs(prevEpochError_1 - error1) < 0.000001 and (nn1_converged == False)):
             nn1_converged = True
@@ -526,21 +529,21 @@ def processResults(resultMatrix):
         resultString = ""
         if(inferredResults[i, 0] == 1):
             confidence = format(percentages[i, 0], '.4f')
-            if(confidence > maxProbability_col):
-                maxProbability_col = confidence
+            if(percentages[i, 0] > maxProbability_col):
+                maxProbability_col = percentages[i, 0]
                 maxProbIndex = i
                 
             resultString = "Image "+str(i + 1)+": EDH - "+ confidence +"% confident"
         if(inferredResults[i, 1] == 1):
             confidence = format(percentages[i, 1], '.4f')
-            if(confidence > maxProbability_col):
-                maxProbability_col = confidence
+            if(percentages[i, 1] > maxProbability_col):
+                maxProbability_col = percentages[i, 1]
                 maxProbIndex = i
             resultString = "Image "+str(i + 1)+": SDH - "+ confidence +"% confident"
         if(inferredResults[i, 2] == 1):
             confidence = format(percentages[i, 2], '.4f')
-            if(confidence > maxProbability_col):
-                maxProbability_col = confidence
+            if(percentages[i, 2] > maxProbability_col):
+                maxProbability_col = percentages[i, 2]
                 maxProbIndex = i
             resultString = "Image "+str(i + 1)+": ICH - "+ confidence +"% confident"
         
@@ -580,7 +583,7 @@ def processResults(resultMatrix):
     
     resultImage = getDrawnContourImage(currentImage_gs, currentImage_contour)
 
-    cv2.putText(resultImage, imageString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,255,255), True)
+    cv2.putText(resultImage, imageString, (10,80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), True)
     windowName = "Final Result for image "+str(i+1)
     cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
     cv2.imshow(windowName, resultImage)
@@ -613,11 +616,11 @@ def getDrawnContourImage(gs_image, contour_image):
 
 def Testing():
     print("Detecting Haemorrhage . . . ")
-    os.system("./main2")
+    os.system("./detection_testing")
     print("Haemorrhage Detection Finished")
     testInputMatrix = getTestInputMatrix()
     totalTests = 220
-    for i in range(1, totalTests + 1):
+    for i in range(1, 2):#totalTests + 1):
         resultsFolder = "Testing/TestResults/"+str(i)+"/"
         os.makedirs(resultsFolder)
         finalProbabilities1hl, finalProbabilities2hl = TestBothNeuralNetworks(testInputMatrix, i)
@@ -670,9 +673,11 @@ def training():
 
 if __name__ == "__main__":
     #main()
-    #training()
-
-    Testing()
+    startClock = time.clock()
+    training()
+    endClock = time.clock()
+    #Testing()
     print ("finished execution.")
+    print("execution time to get all training matrices to converge: "+str(endClock - startClock))
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

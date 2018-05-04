@@ -1,0 +1,4 @@
+[2HL]   converged at epoch 444
+[2HL]   final difference: 9.915171895409273e-07
+[1HL]   converged at epoch 820
+[1HL]   final difference: 9.993419233627872e-07

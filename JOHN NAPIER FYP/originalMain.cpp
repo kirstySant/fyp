@@ -1,4 +1,4 @@
-//
+//  #### filenames updated to cater for neural network training ####
 //  main.cpp
 //  Final_Program
 //

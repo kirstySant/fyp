@@ -1,0 +1,18 @@
+Case 1: SDH - 99.8208% confident
+Case 2: ICH - 99.8428% confident
+Case 3: ICH - 99.9997% confident
+Case 4: ICH - 99.9997% confident
+Case 5: ICH - 99.8428% confident
+Case 6: ICH - 99.8428% confident
+Case 7: ICH - 99.8428% confident
+Case 8: ICH - 99.8428% confident
+Case 9: ICH - 99.8428% confident
+Case 10: ICH - 99.8428% confident
+Case 11: ICH - 99.8428% confident
+Case 12: ICH - 99.8428% confident
+Case 13: ICH - 99.8428% confident
+**************************************
+
+
+Final result for case set: ICH with 0.9220264919115679% confidence
+**************************************

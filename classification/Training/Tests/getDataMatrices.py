@@ -10,6 +10,8 @@ minmse1 = open("minmse1.txt", "w+")
 minmse2 = open("minmse2.txt", "w+")
 maxmse1 = open("maxmse1.txt", "w+")
 maxmse2 = open("maxmse2.txt", "w+")
+e1 = open("e1.txt", "w+")
+e2 = open("e2.txt", "w+")
 for i in range(1, 221):
     fname = str(i)+"/1_Difference.txt"
     diff_1hl = np.loadtxt(fname, ndmin=2)
@@ -34,6 +36,13 @@ for i in range(1, 221):
 
     minmse2.write(str(mse2hl[-1]).replace('[','').replace(']','')+"\n")
     maxmse2.write(str(mse2hl[0]).replace('[','').replace(']','')+"\n")
+    
+    fname5 = str(i)+"/error1.txt"
+    err1 = np.loadtxt(fname5, ndmin=2)
+    e1.write(str(err1[-1]).replace('[','').replace(']','')+"\n")
+    fname6 = str(i)+"/error2.txt"
+    err2 = np.loadtxt(fname6, ndmin=2)
+    e1.write(str(err2[-1]).replace('[','').replace(']','')+"\n")
 
     print(str(i)+":\t"+str(len(diff_2hl))+" | "+str(diff_2hl[-1]).replace('[','').replace(']',''))
     
