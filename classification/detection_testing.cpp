@@ -718,7 +718,7 @@ Mat thresh_callback(int, void* ) //taking care of the contour drawing
     color = Scalar(100,0,254 );//pink contour colour
     cv::cvtColor(drawing,drawing,CV_GRAY2BGR); //conversion to colour to show pink contour
     //drawContours( drawing, contours, maxCountour2, color, 2, 8, vector<Vec4i>(), 0, Point() );
-    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 1000 /*3055*/) && maxArea2 < 15000) && (perimeter < 1000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
+    if (((maxArea2 > 3788)/*3900)*/ && (perimeter < OrigPerim/1.5/*OrigPerim - 1000*/) && ((maxAreaOrig-10000) > maxArea2) ) || (((maxArea2 > 2000/*1000 /*3055*/) && maxArea2 < 15000) && (perimeter < 1000) && ((maxAreaOrig-10000) > maxArea2) && (perimeter < OrigPerim - 1500)))
     {
     	drawnContour = 1;
     	cout <<"!!CONTOUR DRAWN"<<endl;

@@ -614,13 +614,13 @@ def getDrawnContourImage(gs_image, contour_image):
 
 
 
-def Testing():
+def testing():
     print("Detecting Haemorrhage . . . ")
     os.system("./detection_testing")
     print("Haemorrhage Detection Finished")
     testInputMatrix = getTestInputMatrix()
     totalTests = 220
-    for i in range(1, 2):#totalTests + 1):
+    for i in range(1, totalTests + 1):
         resultsFolder = "Testing/TestResults/"+str(i)+"/"
         os.makedirs(resultsFolder)
         finalProbabilities1hl, finalProbabilities2hl = TestBothNeuralNetworks(testInputMatrix, i)
@@ -674,7 +674,8 @@ def training():
 if __name__ == "__main__":
     #main()
     startClock = time.clock()
-    training()
+    #training()
+    testing()
     endClock = time.clock()
     #Testing()
     print ("finished execution.")
