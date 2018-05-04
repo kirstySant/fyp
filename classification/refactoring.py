@@ -331,7 +331,7 @@ def TrainNeuralNetwork(inputMatrix, outputMatrix, learningRate, hl_neurons, l1_n
                 delta2_2 = np.multiply(z2_2_deriv, np.dot(w2_2, delta_out_2))
                 delta1_2 = np.multiply(z1_2_deriv, np.dot(w1_2, delta2_2))
 
-                error2 += (np.mean(delta_out_2) + np.mean(delta2_2) + np.mean(delta1_2)) / 3.0
+                error2 += (np.mean(delta_out_2) + np.mean(delta2_2) + np.mean(delta1_2))/3.0
 
                 ###### calculate change in weights needed and update weights
                 dW_in_1_2 = learningRate * (np.dot(delta1_2, l0).T)
@@ -428,8 +428,6 @@ def getTestInputMatrix():
 #pass test case through neural network
 def TestOneHiddenLayerNetwork(inputMatrix, testSet):
     resultMatrix = np.empty((len(inputMatrix), out_neurons))
-    #open directory corresponding to testSet parameter 
-    ##might not work
     w0 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w0.txt", ndmin=2)
     w1 = np.loadtxt("Training/Tests/"+str(testSet)+"/1_"+str(testSet)+"_w1.txt", ndmin=2)
     #load weight matrces and store them in variables
@@ -450,8 +448,6 @@ def TestOneHiddenLayerNetwork(inputMatrix, testSet):
 
 def TestTwoHiddenLayerNetwork(inputMatrix, testSet):
     resultMatrix = np.empty((len(inputMatrix), out_neurons))
-    #open directory corresponding to testSet parameter
-    ##might be wrong
     w0 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w0.txt", ndmin=2)
     w1 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w1.txt", ndmin=2)
     w2 = np.loadtxt("Training/Tests/"+str(testSet)+"/2_"+str(testSet)+"_w2.txt", ndmin=2)
@@ -630,7 +626,7 @@ def testing():
         outfile = open("Testing/TestResults/"+str(i)+"/"+str(i)+"results 1hl.txt", 'w')
         outfile.write("\n".join(results_1hl))
         outfile.close()
-        cv2.imwrite("Testing/TestResults/ResultImages/Test1/1hl_"+str(i)+".png", image_1)
+        cv2.imwrite("Testing/TestResults/ResultImages/1hl_"+str(i)+".png", image_1)
         
         testList = open("Testing/TestResults/averagePercentage_1.txt", "a+")
         testList.write(str(i)+"\t"+str(percentages_1hl[0]).replace('[','').replace(']','')+"\t"+str(percentages_1hl[1]).replace('[','').replace(']','')+"\t"+str(percentages_1hl[2]).replace('[','').replace(']','')+"\n")

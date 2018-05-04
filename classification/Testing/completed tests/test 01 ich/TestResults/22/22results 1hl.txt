@@ -1,0 +1,14 @@
+Image 1: ICH - 99.1895% confident
+Image 2: ICH - 73.0590% confident
+Image 3: SDH - 93.5617% confident
+Image 4: SDH - 91.7632% confident
+Image 5: SDH - 93.8523% confident
+Image 6: SDH - 93.8523% confident
+Image 7: SDH - 70.9186% confident
+Image 8: ICH - 77.1095% confident
+Image 9: ICH - 60.3404% confident
+Image 10: ICH - 89.2913% confident
+Image 11: ICH - 77.1095% confident
+**************************************
+Final result for case set: ICH with 44.61950787995413% confidence
+**************************************
